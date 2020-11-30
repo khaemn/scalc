@@ -35,9 +35,6 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
   std::vector<Token> stack;
   stack.reserve(tokens.size());
 
-  static const std::set<Lexem> operators{Lexem::INT, Lexem::DIFF, Lexem::SUM};
-  static const std::set<Lexem> operands{Lexem::FILENAME};
-
   size_t node_counter = 0;
   Graph  graph;
 
@@ -178,18 +175,27 @@ OpPtr Graph::buildOperationFromToken(Token const &token)
 {
   switch (token.lexem)
   {
-  case Lexem::INT:
-    return buildOperation(OperationType::INTERSECTION);
   case Lexem::FILENAME:
     return buildOperation(OperationType::FILEREADER, token.value);
+  case Lexem::INT:
+    return buildOperation(OperationType::INTERSECTION);
   case Lexem::DIFF:
     return buildOperation(OperationType::DIFFERENCE);
   case Lexem::SUM:
     return buildOperation(OperationType::UNION);
+  case Lexem::EQ:
+    return buildOperation(OperationType::EQUAL_NUM_OF_MATCHES);
+  case Lexem::LE:
+    return buildOperation(OperationType::LESS_NUM_OF_MATCHES);
+  case Lexem::GR:
+    return buildOperation(OperationType::GREATER_NUM_OF_MATCHES);
+  case Lexem::INTEGER:
+    return buildOperation(OperationType::INTEGER);
   default:
   {
     Logger &log_{Logger::instance()};
-    log_ << "Error: unknown token encountered while building an Operation."
+    log_ << "Error: unknown token ( " << token.value
+         << " ) encountered while building an Operation."
          << "\n";
     return OpPtr{};
   }

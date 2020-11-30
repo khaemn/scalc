@@ -1,6 +1,7 @@
 #include "lexer.hpp"
 
 #include <iostream>
+#include <string>
 
 #include "logger.hpp"
 
@@ -12,6 +13,10 @@ const std::map<std::string, Lexem> Lexer::FIXED_LEXEMS{
     {"SUM", Lexem::SUM},
     {"INT", Lexem::INT},
     {"DIF", Lexem::DIFF},
+    //
+    {"EQ", Lexem::EQ},
+    {"LE", Lexem::LE},
+    {"GR", Lexem::GR},
     //
     {" ", Lexem::SPACE},
 };
@@ -93,6 +98,16 @@ Token Lexer::parseSubstring(const std::string &substring)
       substring.size() <= MAX_ALLOWED_FILENAME_LENGTH)
   {
     return Token{Lexem::FILENAME, substring};
+  }
+
+  try
+  {
+    const int val = std::stoi(substring);
+    return Token{Lexem::INTEGER, substring};
+  }
+  catch (std::exception &e)
+  {
+      // no action
   }
 
   Logger::instance() << "Error: unknown lexem '" << substring << "' found!"

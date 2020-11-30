@@ -23,7 +23,8 @@ int main(int argc, char **argv)
   }
   else
   {
-    user_input = "[ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]";
+    // user_input = "[ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]";
+    user_input = "[ GR 1 [ EQ 3 a.txt a.txt b.txt ] [ LE 2 b.txt c.txt ] ]";
     std::cout << "Please provide 'l' for explicit logging as first argument." << std::endl;
     std::cout << "Example expression: " << user_input << std::endl;
   }

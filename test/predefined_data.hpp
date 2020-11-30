@@ -54,9 +54,9 @@ static const std::vector<Token> example4{
 inline void testGraphBuildingFromData()
 {
   Graph g;
-  g.addNode<OperationType::HARDCODED_INPUT>("A", {}, DataVector{1, 2, 3});
-  g.addNode<OperationType::HARDCODED_INPUT>("B", {}, DataVector{2, 3, 4});
-  g.addNode<OperationType::HARDCODED_INPUT>("C", {}, DataVector{3, 4, 5});
+  g.addNode<OperationType::INTEGER>("A", {}, DataVector{1, 2, 3});
+  g.addNode<OperationType::INTEGER>("B", {}, DataVector{2, 3, 4});
+  g.addNode<OperationType::INTEGER>("C", {}, DataVector{3, 4, 5});
 
   g.addNode<OperationType::FILEREADER>("A", {}, "a.txt");
   g.addNode<OperationType::FILEREADER>("B", {}, "b.txt");

@@ -1,4 +1,5 @@
 #include "ops.hpp"
+
 #include "functions.hpp"
 
 #include <algorithm>
@@ -48,6 +49,18 @@ OpPtr buildOperation(OperationType type)
     return std::static_pointer_cast<IOperation>(std::make_shared<OpUnion>());
   case OperationType::INTERSECTION:
     return std::static_pointer_cast<IOperation>(std::make_shared<OpIntersection>());
+  case OperationType::EQUAL_NUM_OF_MATCHES:
+    // TODO: impl.
+    throw std::runtime_error("OperationType::EQUAL_NUM_OF_MATCHES builder not yet implemented");
+  case OperationType::GREATER_NUM_OF_MATCHES:
+    // TODO: impl.
+    throw std::runtime_error("OperationType::GREATER_NUM_OF_MATCHES builder not yet implemented");
+  case OperationType::LESS_NUM_OF_MATCHES:
+    // TODO: impl.
+    throw std::runtime_error("OperationType::LESS_NUM_OF_MATCHES builder not yet implemented");
+  case OperationType::INTEGER:
+    // TODO: impl.
+    throw std::runtime_error("OperationType::INTEGER builder not yet implemented");
   default:
     throw std::runtime_error("Can not build opeartion of unknown type.");
   }
@@ -64,7 +77,7 @@ OpPtr buildOperation(OperationType type, std::string const &filename)
 
 OpPtr buildOperation(OperationType type, DataVector const &data)
 {
-  if (type != OperationType::HARDCODED_INPUT)
+  if (type != OperationType::INTEGER)
   {
     throw std::runtime_error("Invalid attempt to build node!");
   }
@@ -144,5 +157,5 @@ VectorPtr OpHardcoded::evaluate(const InputData &)
 
 OperationType OpHardcoded::type() const
 {
-  return OperationType::HARDCODED_INPUT;
+  return OperationType::INTEGER;
 }

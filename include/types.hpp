@@ -18,9 +18,14 @@ enum class Lexem
   INT,
   DIFF,
   //
+  EQ,
+  LE,
+  GR,
+  //
   FILENAME,
   //
   SPACE,
+  INTEGER,
   UNKNOWN
 };
 
