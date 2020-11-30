@@ -6,7 +6,7 @@
 #include "logger.hpp"
 
 static constexpr std::size_t       MAX_ALLOWED_FILENAME_LENGTH = 255;
-const std::map<std::string, Lexem> Lexer::FIXED_LEXEMS{
+const std::map<std::string, Lexem> Lexer::FIXED_LEXEM_NAMES{
     {"[", Lexem::OPEN},
     {"]", Lexem::CLOSE},
     //
@@ -21,6 +21,9 @@ const std::map<std::string, Lexem> Lexer::FIXED_LEXEMS{
     {" ", Lexem::SPACE},
 };
 
+const std::set<Lexem> Lexer::PARAMETRIZED_LEXEMS = {Lexem::GR, Lexem::EQ, Lexem::LE};
+
+
 // A filename must contain a dot
 static constexpr char   FILENAME_SIGN               = '.';
 static constexpr char   SPACE                       = ' ';
@@ -31,7 +34,7 @@ static constexpr size_t MAX_LINE_WIDTH_FOR_PRINTING = 42;
  * @param input
  * @return
  */
-std::vector<Token> Lexer::getTokensFrom(const std::string &input)
+std::vector<Token> Lexer::parseUserInput(const std::string &input)
 {
   Logger::instance() << "Starting lexical analysis of user input:"
                      << "\n";
@@ -89,9 +92,9 @@ void Lexer::printTokens(const std::vector<Token> &tokens)
  */
 Token Lexer::parseSubstring(const std::string &substring)
 {
-  if (FIXED_LEXEMS.find(substring) != FIXED_LEXEMS.cend())
+  if (FIXED_LEXEM_NAMES.find(substring) != FIXED_LEXEM_NAMES.cend())
   {
-    return Token{FIXED_LEXEMS.at(substring), substring};
+    return Token{FIXED_LEXEM_NAMES.at(substring), substring};
   }
 
   if (substring.find(FILENAME_SIGN) != std::string::npos &&
@@ -113,4 +116,9 @@ Token Lexer::parseSubstring(const std::string &substring)
   Logger::instance() << "Error: unknown lexem '" << substring << "' found!"
                      << "\n";
   return Token{Lexem::UNKNOWN, substring};
+}
+
+bool Lexer::isParametrized(Lexem lexem)
+{
+  return PARAMETRIZED_LEXEMS.find(lexem) != PARAMETRIZED_LEXEMS.end();
 }

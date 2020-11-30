@@ -1,42 +1,32 @@
 #include "ops.hpp"
 
-#include "functions.hpp"
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <set>
 
-OpFileReader::OpFileReader(const std::string &filename)
-  : filename_(filename)
-{}
+#include "functions.hpp"
+#include "logger.hpp"
 
-std::string OpFileReader::description() const
+const std::map<OperationType, std::string> OP_NAMES{
+    {OperationType::DIFFERENCE, "DIFFERENCE"},
+    {OperationType::UNION, "UNION"},
+    {OperationType::INTERSECTION, "INTERSECTION"},
+    {OperationType::KEEP_IF_PRECISELY_N_MATCHES, "KEEP_IF_PRECISELY_N_MATCHES"},
+    {OperationType::KEEP_IF_MORE_THAN_N_MATCHES, "KEEP_IF_MORE_THAN_N_MATCHES"},
+    {OperationType::KEEP_IF_LESS_THAN_N_MATCHES, "KEEP_IF_LESS_THAN_N_MATCHES"},
+    {OperationType::FILEREADER, "FILEREADER"},
+    {OperationType::INTEGER, "INTEGER"},
+    {OperationType::CONST_VECTOR, "CONST_VECTOR"},
+    {OperationType::INVALID, "INVALID"},
+    {OperationType::DUMMY, "DUMMY"}};
+
+void validateTypeIsIn(OperationType type, const std::set<OperationType> allowed_types = {})
 {
-  return "File_Reader_";
-}
-
-OpHardcoded::OpHardcoded(const DataVector &data)
-  : data_(data)
-{}
-
-std::string OpHardcoded::description() const
-{
-  return "Hardcoded_Data_";
-}
-
-std::string OpUnion::description() const
-{
-  return "Set_Union_";
-}
-
-std::string OpIntersection::description() const
-{
-  return "Set_Intersection_";
-}
-
-std::string OpDifference::description() const
-{
-  return "Set_Difference_";
+  if (allowed_types.find(type) == allowed_types.end())
+  {
+    throw std::runtime_error("Can not build operation: uncompatible type " + OP_NAMES.at(type));
+  }
 }
 
 OpPtr buildOperation(OperationType type)
@@ -49,70 +39,75 @@ OpPtr buildOperation(OperationType type)
     return std::static_pointer_cast<IOperation>(std::make_shared<OpUnion>());
   case OperationType::INTERSECTION:
     return std::static_pointer_cast<IOperation>(std::make_shared<OpIntersection>());
-  case OperationType::EQUAL_NUM_OF_MATCHES:
-    // TODO: impl.
-    throw std::runtime_error("OperationType::EQUAL_NUM_OF_MATCHES builder not yet implemented");
-  case OperationType::GREATER_NUM_OF_MATCHES:
-    // TODO: impl.
-    throw std::runtime_error("OperationType::GREATER_NUM_OF_MATCHES builder not yet implemented");
-  case OperationType::LESS_NUM_OF_MATCHES:
-    // TODO: impl.
-    throw std::runtime_error("OperationType::LESS_NUM_OF_MATCHES builder not yet implemented");
-  case OperationType::INTEGER:
-    // TODO: impl.
-    throw std::runtime_error("OperationType::INTEGER builder not yet implemented");
   default:
-    throw std::runtime_error("Can not build opeartion of unknown type.");
+    throw std::runtime_error("Can not build operation of type " + OP_NAMES.at(type) +
+                             " without an argument or parameter.");
   }
 }
 
 OpPtr buildOperation(OperationType type, std::string const &filename)
 {
-  if (type != OperationType::FILEREADER)
-  {
-    throw std::runtime_error("Invalid attempt to build node!");
-  }
+  validateTypeIsIn(type, {OperationType::FILEREADER});
   return std::static_pointer_cast<IOperation>(std::make_shared<OpFileReader>(filename));
 }
 
 OpPtr buildOperation(OperationType type, DataVector const &data)
 {
-  if (type != OperationType::INTEGER)
-  {
-    throw std::runtime_error("Invalid attempt to build node!");
-  }
+  validateTypeIsIn(type, {OperationType::CONST_VECTOR});
   return std::static_pointer_cast<IOperation>(std::make_shared<OpHardcoded>(data));
 }
 
-VectorPtr OpDifference::evaluate(const InputData &inputs)
+OpPtr buildOperation(OperationType type, int parameter)
 {
-  return naive_difference(inputs);
+  switch (type)
+  {
+  case OperationType::KEEP_IF_PRECISELY_N_MATCHES:
+    return std::static_pointer_cast<IOperation>(
+        std::make_shared<OpKeepIfPreciselyNMatches>(parameter));
+  case OperationType::KEEP_IF_MORE_THAN_N_MATCHES:
+    return std::static_pointer_cast<IOperation>(
+        std::make_shared<OpKeepIfMoreThanNMatches>(parameter));
+  case OperationType::KEEP_IF_LESS_THAN_N_MATCHES:
+    return std::static_pointer_cast<IOperation>(
+        std::make_shared<OpKeepIfLessThanNMatches>(parameter));
+  default:
+    break;
+  }
+  throw std::runtime_error("Can not build operation of type " + OP_NAMES.at(type) +
+                           " with an integer parameter.");
 }
 
-OperationType OpDifference::type() const
+OpDifference::OpDifference()
+  : IOperation(OperationType::DIFFERENCE)
+{}
+
+VectorPtr OpDifference::evaluate(const InputData &inputs)
 {
-  return OperationType::DIFFERENCE;
+    return naive_difference(inputs);
 }
+
+OpIntersection::OpIntersection()
+  : IOperation(OperationType::INTERSECTION)
+{}
 
 VectorPtr OpIntersection::evaluate(const InputData &inputs)
 {
-  return naive_intersection(inputs);
+    return naive_intersection(inputs);
 }
 
-OperationType OpIntersection::type() const
-{
-  return OperationType::INTERSECTION;
-}
+OpUnion::OpUnion()
+  : IOperation(OperationType::UNION)
+{}
 
 VectorPtr OpUnion::evaluate(const InputData &inputs)
 {
   return naive_union(inputs);
 }
 
-OperationType OpUnion::type() const
-{
-  return OperationType::UNION;
-}
+OpFileReader::OpFileReader(const std::string &filename)
+  : IOperation(OperationType::FILEREADER)
+  , filename_(filename)
+{}
 
 VectorPtr OpFileReader::evaluate(const InputData &)
 {
@@ -145,17 +140,42 @@ VectorPtr OpFileReader::evaluate(const InputData &)
   return result;
 }
 
-OperationType OpFileReader::type() const
-{
-  return OperationType::FILEREADER;
-}
+OpHardcoded::OpHardcoded(const DataVector &data)
+  : IOperation(OperationType::CONST_VECTOR)
+  , data_(data)
+{}
 
 VectorPtr OpHardcoded::evaluate(const InputData &)
 {
   return std::make_shared<DataVector>(data_);
 }
 
-OperationType OpHardcoded::type() const
+OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
+  : IOperation(OperationType::KEEP_IF_MORE_THAN_N_MATCHES)
+  , parameter_(parameter)
+{}
+
+VectorPtr OpKeepIfMoreThanNMatches::evaluate(const InputData &inputs)
 {
-  return OperationType::INTEGER;
+  throw std::runtime_error("OpKeepMoreThanNMatches NOT IMPLEMETED");
+}
+
+OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
+  : IOperation(OperationType::KEEP_IF_LESS_THAN_N_MATCHES)
+  , parameter_(parameter)
+{}
+
+VectorPtr OpKeepIfLessThanNMatches::evaluate(const InputData &inputs)
+{
+  throw std::runtime_error("OpKeepIfLessThanNMatches NOT IMPLEMETED");
+}
+
+OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
+  : IOperation(OperationType::KEEP_IF_PRECISELY_N_MATCHES)
+  , parameter_(parameter)
+{}
+
+VectorPtr OpKeepIfPreciselyNMatches::evaluate(const InputData &inputs)
+{
+  throw std::runtime_error("OpKeepIfPreciselyNMatches NOT IMPLEMETED");
 }

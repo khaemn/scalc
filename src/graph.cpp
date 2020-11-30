@@ -7,6 +7,8 @@
 
 #include "lexer.hpp"
 
+static constexpr auto PARAM_SEPARATOR {"|"};
+
 /**
  * @brief Parses user input to a list of tokens and builds expression Graph from it
  * @param input - a string with [, ], spaces, DIF, INT, SUM, filenames allowed; each lexem has to be
@@ -15,7 +17,7 @@
  */
 Graph Graph::buildFromUserInput(const std::string &input)
 {
-  std::vector<Token> tokens = Lexer::getTokensFrom(input);
+  std::vector<Token> tokens = Lexer::parseUserInput(input);
   return buildFromTokens(tokens);
 }
 
@@ -45,15 +47,36 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
   Lexer::printTokens(tokens);
   log << "\n";
 
-  for (auto const &token : tokens)
+
+  for (size_t token_idx {0}; token_idx < tokens.size(); ++token_idx)
   {
+    const Token& token = tokens.at(token_idx);
     Lexer::printTokens(stack);
     log << INDENT << ">" << token.value << "<"
         << "\n";
 
     if (token.lexem != Lexem::CLOSE)
     {
-      stack.push_back(token);
+      if (Lexer::isParametrized(token.lexem))
+      {
+        // The next token is SPACE, and after it we expect a NUMBER
+        // token which contains the actual parameter of an LE, GE, EQ etc. operation.
+        const auto &parameter = tokens.at(token_idx + 1);
+        if (parameter.lexem != Lexem::INTEGER)
+        {
+          log << "Can not parse " << parameter.value << " as an integer parameter of "
+              << token.value;
+          throw std::runtime_error("Parsing failed");
+        }
+        Token parametrized = {token.lexem, token.value + PARAM_SEPARATOR + parameter.value};
+        stack.push_back(parametrized);
+
+        ++token_idx; // skip the parameter lexem
+      }
+      else
+      {
+        stack.push_back(token);
+      }
 
       if (token.lexem == Lexem::OPEN)
       {
@@ -84,7 +107,7 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
       // Every node should have a unique name except for file readers: only one filereader
       // per one filename is allowed to prevent duplicating of huge file caches.
       std::string node_name =
-          op->description() + stack.back().value +
+          op->description() + "_" + stack.back().value +
           (op->type() == OperationType::FILEREADER ? "" : ("_" + std::to_string(node_counter)));
 
       if (graph.getNode(node_name).get())
@@ -122,7 +145,7 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
         parent->addInput(Node::NodeWeakPtr(child));
         ready_nodes.pop_back();
 
-        log << INDENT << parent->name() << "--connect-to-input-->" << child->name() << "\n";
+        log << INDENT << parent->name() << "--connect-input-to-->" << child->name() << "\n";
       }
       log << INDENT << "All nodes in a block on depth " << depth
           << " linked successfuly, parent node added to buffer on depth " << depth - 1 << "\n";
@@ -135,7 +158,7 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
       while (!new_nodes.empty())
       {
         auto const &child = new_nodes.back();
-        log << INDENT << parent->name() << "--connect-to-input-->" << child->name() << "\n";
+        log << INDENT << parent->name() << "--connect-input-to-->" << child->name() << "\n";
         parent->addInput(Node::NodeWeakPtr(child));
         new_nodes.pop_back();
       }
@@ -184,15 +207,15 @@ OpPtr Graph::buildOperationFromToken(Token const &token)
   case Lexem::SUM:
     return buildOperation(OperationType::UNION);
   case Lexem::EQ:
-    return buildOperation(OperationType::EQUAL_NUM_OF_MATCHES);
+    return buildOperation(OperationType::KEEP_IF_PRECISELY_N_MATCHES,
+                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR)+1)));
   case Lexem::LE:
-    return buildOperation(OperationType::LESS_NUM_OF_MATCHES);
+    return buildOperation(OperationType::KEEP_IF_LESS_THAN_N_MATCHES,
+                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR)+1)));
   case Lexem::GR:
-    return buildOperation(OperationType::GREATER_NUM_OF_MATCHES);
-  case Lexem::INTEGER:
-    return buildOperation(OperationType::INTEGER);
-  default:
-  {
+    return buildOperation(OperationType::KEEP_IF_MORE_THAN_N_MATCHES,
+                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR)+1)));
+  default: {
     Logger &log_{Logger::instance()};
     log_ << "Error: unknown token ( " << token.value
          << " ) encountered while building an Operation."

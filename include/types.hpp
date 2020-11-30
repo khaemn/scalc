@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <memory>
+#include <deque>
 #include <vector>
 
 using DataType   = int64_t;
-using DataVector = std::vector<DataType>;
+using DataVector = std::deque<DataType>;
 using VectorPtr  = std::shared_ptr<DataVector>;
 using InputData  = std::vector<VectorPtr>;
 
