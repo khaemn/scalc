@@ -32,7 +32,9 @@ int main(int argc, char **argv)
   try
   {
     Graph expression = Graph::buildFromUserInput(user_input);
-    Helpers::printVector(expression.evaluate());
+    const auto result = expression.evaluate();
+    std::cout << "Result:\n\n";
+    Helpers::printVector(result);
   }
   catch (std::exception &e)
   {

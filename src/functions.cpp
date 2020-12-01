@@ -113,3 +113,63 @@ void printVectorInLine(const DataVector &set)
 }
 
 }  // namespace Helpers
+
+MatchMap count_matches(const InputData &sets)
+{
+  auto &     log = Logger::instance();
+  MatchMap   matches;
+  const auto first_set    = *(*sets.begin());
+  auto       others_begin = sets.begin() + 1;
+  auto       others_end   = sets.end();
+
+  // TODO: a good point for parallelization.
+  for (const auto &element : first_set)
+  {
+    log << "Searching for matches of element " << element << std::endl;
+    auto other_set_ptr = others_begin;
+    while (other_set_ptr != others_end)
+    {
+      const auto &other       = *other_set_ptr;
+      const bool  match_found = std::binary_search(other->begin(), other->end(), element);
+      if (match_found)
+      {
+        matches[element] += 1;
+      }
+      other_set_ptr++;
+    }
+  }
+  return matches;
+}
+
+VectorPtr keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condition)
+{
+  auto result = std::make_shared<DataVector>();
+  for (const auto &match : matches)
+  {
+    if (condition(match.second))
+    {
+      result->emplace_back(match.first);
+    }
+  }
+  std::sort(result->begin(), result->end());
+  Helpers::printVectorInLine(*result);
+  return result;
+}
+
+VectorPtr naive_keep_if_less_than_n_matches(const InputData &sets, int n)
+{
+  auto condition = [&n](size_t matches) { return matches < size_t(n); };
+  return keep_matches_if(count_matches(sets), condition);
+}
+
+VectorPtr naive_keep_if_precisely_n_matches(const InputData &sets, int n)
+{
+  auto condition = [&n](size_t matches) { return matches == size_t(n); };
+  return keep_matches_if(count_matches(sets), condition);
+}
+
+VectorPtr naive_keep_if_greater_than_n_matches(const InputData &sets, int n)
+{
+  auto condition = [&n](size_t matches) { return matches > size_t(n); };
+  return keep_matches_if(count_matches(sets), condition);
+}

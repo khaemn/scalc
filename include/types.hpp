@@ -4,8 +4,10 @@
 #include <memory>
 #include <deque>
 #include <vector>
+#include <map>
 
 using DataType   = int64_t;
+using MatchMap   = std::map<DataType, size_t>;
 using DataVector = std::deque<DataType>;
 using VectorPtr  = std::shared_ptr<DataVector>;
 using InputData  = std::vector<VectorPtr>;

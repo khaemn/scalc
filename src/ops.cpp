@@ -157,7 +157,8 @@ OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
 
 VectorPtr OpKeepIfMoreThanNMatches::evaluate(const InputData &inputs)
 {
-  throw std::runtime_error("OpKeepMoreThanNMatches NOT IMPLEMETED");
+  Logger::instance() << "asas" << std::endl;
+  return naive_keep_if_greater_than_n_matches(inputs, parameter_);
 }
 
 OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
@@ -167,7 +168,7 @@ OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
 
 VectorPtr OpKeepIfLessThanNMatches::evaluate(const InputData &inputs)
 {
-  throw std::runtime_error("OpKeepIfLessThanNMatches NOT IMPLEMETED");
+  return naive_keep_if_less_than_n_matches(inputs, parameter_);
 }
 
 OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
@@ -177,5 +178,5 @@ OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
 
 VectorPtr OpKeepIfPreciselyNMatches::evaluate(const InputData &inputs)
 {
-  throw std::runtime_error("OpKeepIfPreciselyNMatches NOT IMPLEMETED");
+  return naive_keep_if_precisely_n_matches(inputs, parameter_);
 }
