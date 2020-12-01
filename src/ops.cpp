@@ -157,7 +157,7 @@ OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
 
 VectorPtr OpKeepIfMoreThanNMatches::evaluate(const InputData &inputs)
 {
-  Logger::instance() << "asas" << std::endl;
+  Logger::instance() << "OpKeepIfMoreThanNMatches::evaluate" << std::endl;
   return naive_keep_if_greater_than_n_matches(inputs, parameter_);
 }
 

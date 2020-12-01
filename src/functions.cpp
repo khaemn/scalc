@@ -122,10 +122,20 @@ MatchMap count_matches(const InputData &sets)
   auto       others_begin = sets.begin() + 1;
   auto       others_end   = sets.end();
 
+  log << "--- Input sets:---------\n";
+  for (const auto& s : sets) {
+      Helpers::printVectorInLine(*s);
+  }
+  log << "------------------------\n";
+
+
   // TODO: a good point for parallelization.
   for (const auto &element : first_set)
   {
-    log << "Searching for matches of element " << element << std::endl;
+    if (matches.find(element) != matches.end()) {
+        continue;
+    }
+    matches[element] += 1;
     auto other_set_ptr = others_begin;
     while (other_set_ptr != others_end)
     {
@@ -138,6 +148,12 @@ MatchMap count_matches(const InputData &sets)
       other_set_ptr++;
     }
   }
+  log << "===== Match map :" << std::endl;
+  for (const auto m : matches)
+  {
+    log << m.first << " : " << m.second << std::endl;
+  }
+  log << "================" << std::endl;
   return matches;
 }
 
