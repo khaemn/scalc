@@ -116,44 +116,56 @@ void printVectorInLine(const DataVector &set)
 
 MatchMap count_matches(const InputData &sets)
 {
-  auto &     log = Logger::instance();
-  MatchMap   matches;
-  const auto first_set    = *(*sets.begin());
-  auto       others_begin = sets.begin() + 1;
-  auto       others_end   = sets.end();
+  auto &   log = Logger::instance();
+  MatchMap matches;
 
-  log << "--- Input sets:---------\n";
-  for (const auto& s : sets) {
-      Helpers::printVectorInLine(*s);
-  }
-  log << "------------------------\n";
-
+  //log << "--- Input sets:---------\n";
+  //for (const auto& s : sets) {
+  //    Helpers::printVectorInLine(*s);
+  //}
+  //log << "------------------------\n";
 
   // TODO: a good point for parallelization.
-  for (const auto &element : first_set)
+  auto       current = sets.begin();
+  auto       other   = sets.begin();
+  const auto end     = sets.end();
+  while (current != end)
   {
-    if (matches.find(element) != matches.end()) {
-        continue;
-    }
-    matches[element] += 1;
-    auto other_set_ptr = others_begin;
-    while (other_set_ptr != others_end)
+    for (const auto &element : *(*current))
     {
-      const auto &other       = *other_set_ptr;
-      const bool  match_found = std::binary_search(other->begin(), other->end(), element);
-      if (match_found)
+      if (matches.find(element) != matches.end())
       {
-        matches[element] += 1;
+        // If an element already exists in the map, it means that
+        // at some of the previous iterations all matches for it
+        // have been already found.
+        continue;
       }
-      other_set_ptr++;
+      matches[element] += 1;
+      while (other != end)
+      {
+        if (other != current)
+        {
+          //log << "Searching for " << element << " in "; Helpers::printVectorInLine(*(*other));
+          //log << std::endl;
+          if (std::binary_search((*other)->begin(), (*other)->end(), element))
+          {
+            //  log << "Match!\n";
+            matches[element] += 1;
+          }
+        }
+        other++;
+      }
+      other = sets.begin();
     }
+    current++;
+    other = sets.begin();
   }
-  log << "===== Match map :" << std::endl;
-  for (const auto m : matches)
-  {
-    log << m.first << " : " << m.second << std::endl;
-  }
-  log << "================" << std::endl;
+  //log << "===== Match map :" << std::endl;
+  //for (const auto m : matches)
+  //{
+  //  log << m.first << " : " << m.second << std::endl;
+  //}
+  //log << "================" << std::endl;
   return matches;
 }
 
@@ -168,7 +180,7 @@ VectorPtr keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condit
     }
   }
   std::sort(result->begin(), result->end());
-  Helpers::printVectorInLine(*result);
+  //Helpers::printVectorInLine(*result);
   return result;
 }
 

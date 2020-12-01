@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <chrono>
 
 #include "functions.hpp"
 #include "graph.hpp"
@@ -32,8 +33,26 @@ int main(int argc, char **argv)
   try
   {
     Graph expression = Graph::buildFromUserInput(user_input);
+
+    auto start = std::chrono::system_clock::now();
     const auto result = expression.evaluate();
-    std::cout << "Result:\n\n";
+    auto end = std::chrono::system_clock::now();
+
+    // EQ 10 of 10 files 1M elements in range (0..5M) each takes +- 32000 msec and
+    // gives 906706 matches (~1M). Total elements to process 10M.
+    // EQ 5 of 5 files 1M elements in range (0..5M) each takes +- 9500 msec and
+    // gives 906706 matches (~1M). Total elements to process 5M.
+    // EQ 3 of 3 files 1M elements in range (0..5M) each takes +- 5650 msec and
+    // gives 906706 matches (~1M). Total elements to process 3M.
+    // EQ 10 of 10 files 1k elements in range (0..5k) each takes +- 17 msec and
+    // gives 913 matches (~1k). Total elements to process 10k
+    // EQ 10 of 5 files  1k elements in range (0..5k) each takes 9 msec and
+    // gives 0 results (expected)
+    // EQ 5 of 5 files  1k elements in range (0..5k) each takes 9 msec and
+    // gives 913 results (~1k). Total 5k elements
+    std::cout << "Result in "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+              << " milliseconds:\n\n";
     Helpers::printVector(result);
   }
   catch (std::exception &e)
