@@ -157,7 +157,7 @@ OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
 
 VectorPtr OpKeepIfMoreThanNMatches::evaluate(const InputData &inputs)
 {
-  //Logger::instance() << "OpKeepIfMoreThan" << parameter_ << "Matches::evaluate" << std::endl;
+  Logger::instance() << "OpKeepIfMoreThan" << parameter_ << "Matches::evaluate" << std::endl;
   return naive_keep_if_greater_than_n_matches(inputs, parameter_);
 }
 
@@ -168,7 +168,7 @@ OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
 
 VectorPtr OpKeepIfLessThanNMatches::evaluate(const InputData &inputs)
 {
-  //Logger::instance() << "OpKeepIfLessThan" << parameter_ << "Matches::evaluate" << std::endl;
+  Logger::instance() << "OpKeepIfLessThan" << parameter_ << "Matches::evaluate" << std::endl;
   return naive_keep_if_less_than_n_matches(inputs, parameter_);
 }
 
@@ -179,6 +179,6 @@ OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
 
 VectorPtr OpKeepIfPreciselyNMatches::evaluate(const InputData &inputs)
 {
-  //Logger::instance() << "OpKeepIfPrecisely" << parameter_ << "Matches::evaluate" << std::endl;
+  Logger::instance() << "OpKeepIfPrecisely" << parameter_ << "Matches::evaluate" << std::endl;
   return naive_keep_if_precisely_n_matches(inputs, parameter_);
 }

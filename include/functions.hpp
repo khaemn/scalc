@@ -15,7 +15,7 @@ MatchMap count_matches(const InputData &sets);
 
 namespace Helpers {
 
-void printVector(DataVector const &set);
+void printVectorToCout(DataVector const &set);
 void printVectorInLine(DataVector const &set);
 
 }  // namespace Helpers

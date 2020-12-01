@@ -18,13 +18,14 @@ if (args.max <= args.min):
 if (args.filename == ""):
     args.filename = "{}.txt".format(args.n)
 
-numbers = []
-
-for i in range (args.n):
-    numbers.append(random.randint(args.min, args.max))
-numbers.sort()
 
 for filenum in range(1, args.total_files + 1):
+    numbers = []
+
+    for i in range (args.n):
+        numbers.append(random.randint(args.min, args.max))
+    numbers.sort()
+    
     fname = "{}_{}".format(filenum, args.filename)
     with open(fname, 'w') as file:
         print("Writing {} random nums from {} to {} into file {}"

@@ -1,0 +1,17 @@
+Command example:
+
+$ ./scalc [ GR 2 ../scalc/test/1_1000000.txt ../scalc/test/2_1000000.txt ../scalc/test/3_1000000.txt ../scalc/test/4_1000000.txt ../scalc/test/5_1000000.txt ../scalc/test/6_1000000.txt ../scalc/test/7_1000000.txt ../scalc/test/8_1000000.txt ../scalc/test/9_1000000.txt ../scalc/test/10_1000000.txt ] > result.txt && head result.txt
+
+Naiive implementation of GR:
+
+[GR 2] among 10 files with 1k el. (total 10K) in range (0..5k)
+40..60 msec, 1342 results
+
+[GR 2] among 10 files with 10k el. (total 100K) in range (0..50k)
+~410 msec, 13364 results
+
+[GR 2] among 10 files with 100k el. (total 1M) in range (0..500k)
+~4800 msec, 133510 results
+
+[GR 2] among 10 files with 1M el. (total 10M) in range (0..5M)
+~66 sec, 1331839 results

@@ -95,7 +95,7 @@ VectorPtr naive_union(const InputData &sets)
 
 namespace Helpers {
 
-void printVector(const DataVector &set)
+void printVectorToCout(const DataVector &set)
 {
   for (auto value : set)
   {
@@ -107,9 +107,8 @@ void printVectorInLine(const DataVector &set)
 {
   for (auto value : set)
   {
-    std::cout << value << " ";
+    Logger::instance() << value << " ";
   }
-  std::cout << std::endl;
 }
 
 }  // namespace Helpers
@@ -119,11 +118,11 @@ MatchMap count_matches(const InputData &sets)
   auto &   log = Logger::instance();
   MatchMap matches;
 
-  //log << "--- Input sets:---------\n";
-  //for (const auto& s : sets) {
-  //    Helpers::printVectorInLine(*s);
-  //}
-  //log << "------------------------\n";
+  log << "--- Input sets:---------\n";
+  for (const auto& s : sets) {
+      Helpers::printVectorInLine(*s);
+  }
+  log << "------------------------\n";
 
   // TODO: a good point for parallelization.
   auto       current = sets.begin();
@@ -160,12 +159,12 @@ MatchMap count_matches(const InputData &sets)
     current++;
     other = sets.begin();
   }
-  //log << "===== Match map :" << std::endl;
-  //for (const auto m : matches)
-  //{
-  //  log << m.first << " : " << m.second << std::endl;
-  //}
-  //log << "================" << std::endl;
+  log << "===== Match map : ===\n";
+  for (const auto m : matches)
+  {
+    log << m.first << " : " << m.second << " \n";
+  }
+  log << "=====================\n";
   return matches;
 }
 
@@ -180,7 +179,8 @@ VectorPtr keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condit
     }
   }
   std::sort(result->begin(), result->end());
-  //Helpers::printVectorInLine(*result);
+  Logger::instance() << "keep_if result:\n";
+  Helpers::printVectorInLine(*result);
   return result;
 }
 
