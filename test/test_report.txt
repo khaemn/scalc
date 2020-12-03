@@ -15,3 +15,11 @@ Naiive implementation of GR:
 
 [GR 2] among 10 files with 1M el. (total 10M) in range (0..5M)
 ~66 sec, 1331839 results
+
+
+----  unordered set (no sorting at the end) 
+
+[GR 2] among 10 files with 1M el. (total 10M) in range (0..5M)
+~40 sec, 1331839 results
+
+---- unordered sets just cross-insertion + sorting at the end

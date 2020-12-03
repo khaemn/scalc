@@ -71,26 +71,32 @@ static VectorPtr process_inputs_by_pair(
 
 VectorPtr naive_intersection(const InputData &sets)
 {
-  auto processor = [](DataVector const &v1, DataVector const &v2, DataVector &out) {
-    std::set_intersection(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), std::back_inserter(out));
-  };
-  return process_inputs_by_pair(sets, processor);
+//  auto processor = [](DataVector const &v1, DataVector const &v2, DataVector &out) {
+//    std::set_intersection(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), std::back_inserter(out));
+//  };
+//  return process_inputs_by_pair(sets, processor);
+    // DEBUG!
+    return {sets.back()};
 }
 
 VectorPtr naive_difference(const InputData &sets)
 {
-  auto processor = [](DataVector const &v1, DataVector const &v2, DataVector &out) {
-    std::set_difference(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), std::back_inserter(out));
-  };
-  return process_inputs_by_pair(sets, processor);
+//  auto processor = [](DataVector const &v1, DataVector const &v2, DataVector &out) {
+//    std::set_difference(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), std::back_inserter(out));
+//  };
+//  return process_inputs_by_pair(sets, processor);
+    // DEBUG!
+    return {sets.back()};
 }
 
 VectorPtr naive_union(const InputData &sets)
 {
-  auto processor = [](DataVector const &v1, DataVector const &v2, DataVector &out) {
-    std::set_union(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), std::back_inserter(out));
-  };
-  return process_inputs_by_pair(sets, processor);
+//  auto processor = [](DataVector const &v1, DataVector const &v2, DataVector &out) {
+//    std::set_union(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), std::back_inserter(out));
+//  };
+//  return process_inputs_by_pair(sets, processor);
+    // DEBUG!
+    return {sets.back()};
 }
 
 namespace Helpers {
@@ -146,7 +152,8 @@ MatchMap count_matches(const InputData &sets)
         {
           //log << "Searching for " << element << " in "; Helpers::printVectorInLine(*(*other));
           //log << std::endl;
-          if (std::binary_search((*other)->begin(), (*other)->end(), element))
+          // DEBUG! if (std::binary_search((*other)->begin(), (*other)->end(), element))
+          if ((*other)->count(element))
           {
             //  log << "Match!\n";
             matches[element] += 1;
@@ -175,10 +182,10 @@ VectorPtr keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condit
   {
     if (condition(match.second))
     {
-      result->emplace_back(match.first);
+      result->insert(match.first);
     }
   }
-  std::sort(result->begin(), result->end());
+  //std::sort(result->begin(), result->end());
   Logger::instance() << "keep_if result:\n";
   Helpers::printVectorInLine(*result);
   return result;

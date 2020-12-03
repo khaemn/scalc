@@ -134,7 +134,7 @@ VectorPtr OpFileReader::evaluate(const InputData &)
                                "invalid.");
     }
     prev_value = value;
-    result->emplace_back(value);
+    result->insert(value);
   }
   cache_ = result;
   return result;
