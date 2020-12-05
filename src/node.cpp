@@ -61,7 +61,7 @@ const std::string &Node::name() const
   return name_;
 }
 
-std::shared_ptr<IOperation> Node::getOp()
+std::shared_ptr<Operation> Node::getOp()
 {
   return op_ptr_;
 }

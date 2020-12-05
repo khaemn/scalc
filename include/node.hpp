@@ -20,7 +20,7 @@ public:
   void resetInputsAndOutputs();
 
   std::string const &         name() const;
-  std::shared_ptr<IOperation> getOp();
+  std::shared_ptr<Operation> getOp();
   OperationType               operationType() const;
 
 private:

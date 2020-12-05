@@ -9,25 +9,26 @@
 
 static constexpr auto PARAM_SEPARATOR{"|"};
 
-/**
- * @brief Parses user input to a list of tokens and builds expression Graph from it
- * @param input - a string with [, ], spaces, DIF, INT, SUM, filenames allowed; each lexem has to be
- * separated with spaces.
- * @return A compiled Graph object
- */
-Expression Expression::buildFromUserInput(const std::string &input)
+Expression::Expression(IEngine &engine)
+  : engine_(engine)
+{}
+
+void Expression::buildFromUserInput(const std::string &input)
 {
+  if (is_compiled_)
+  {
+    throw std::runtime_error("Attempt to build an Expression which is already built.");
+  }
   std::vector<Token> tokens = Lexer::parseUserInput(input);
-  return buildFromTokens(tokens);
+  buildFromTokens(tokens);
 }
 
-/**
- * @brief Parses a list of tokens and builds expression Graph
- * @param tokens
- * @return A compiled Graph object
- */
-Expression Expression::buildFromTokens(std::vector<Token> const &tokens)
+void Expression::buildFromTokens(std::vector<Token> const &tokens)
 {
+  if (is_compiled_)
+  {
+    throw std::runtime_error("Attempt to build an Expression which is already built.");
+  }
   Logger &log{Logger::instance()};
   using NodePtr                = Expression::NodePtrType;
   using NodeBuffer             = std::vector<NodePtr>;
@@ -37,8 +38,7 @@ Expression Expression::buildFromTokens(std::vector<Token> const &tokens)
   std::vector<Token> stack;
   stack.reserve(tokens.size());
 
-  size_t     node_counter = 0;
-  Expression expression;
+  size_t node_counter = 0;
 
   NodeMatrix unlinked_nodes;
   size_t     depth = 0;
@@ -109,15 +109,15 @@ Expression Expression::buildFromTokens(std::vector<Token> const &tokens)
           op->description() + "_" + stack.back().value +
           (op->type() == OperationType::FILEREADER ? "" : ("_" + std::to_string(node_counter)));
 
-      if (expression.getNode(node_name).get())
+      if (this->getNode(node_name).get())
       {
         log << "A node with name " << node_name << " already exists in the expression.\n";
-        new_nodes.push_back(expression.getNode(node_name));
+        new_nodes.push_back(this->getNode(node_name));
       }
       else
       {
         new_nodes.emplace_back(std::make_shared<Node>(op, node_name));
-        expression.insertNode(node_name, new_nodes.back());
+        this->insertNode(node_name, new_nodes.back());
         log << "  Created node " << node_name << "\n";
         ++node_counter;
       }
@@ -177,15 +177,15 @@ Expression Expression::buildFromTokens(std::vector<Token> const &tokens)
     log << "Parsing finished successfuly, created a Graph with " << node_counter << " nodes."
         << "\n";
 
-    expression.setOutputNodeName(unlinked_nodes.front().back()->name());
-    expression.compile();
+    this->setOutputNodeName(unlinked_nodes.front().back()->name());
+    this->compile();
   }
   else
   {
     throw std::runtime_error("Input parsing failed! Unparsed/invalid input lexem : " +
                              stack.back().value);
   }
-  return expression;
+  is_compiled_ = true;
 }
 
 /**
@@ -198,21 +198,21 @@ OpPtr Expression::buildOperationFromToken(Token const &token)
   switch (token.lexem)
   {
   case Lexem::FILENAME:
-    return buildOperation(OperationType::FILEREADER, token.value);
+    return buildOperation(engine_, OperationType::FILEREADER, token.value);
   case Lexem::INT:
-    return buildOperation(OperationType::INTERSECTION);
+    return buildOperation(engine_, OperationType::INTERSECTION);
   case Lexem::DIFF:
-    return buildOperation(OperationType::DIFFERENCE);
+    return buildOperation(engine_, OperationType::DIFFERENCE);
   case Lexem::SUM:
-    return buildOperation(OperationType::UNION);
+    return buildOperation(engine_, OperationType::UNION);
   case Lexem::EQ:
-    return buildOperation(OperationType::KEEP_IF_PRECISELY_N_MATCHES,
+    return buildOperation(engine_, OperationType::KEEP_IF_PRECISELY_N_MATCHES,
                           std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR) + 1)));
   case Lexem::LE:
-    return buildOperation(OperationType::KEEP_IF_LESS_THAN_N_MATCHES,
+    return buildOperation(engine_, OperationType::KEEP_IF_LESS_THAN_N_MATCHES,
                           std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR) + 1)));
   case Lexem::GR:
-    return buildOperation(OperationType::KEEP_IF_MORE_THAN_N_MATCHES,
+    return buildOperation(engine_, OperationType::KEEP_IF_MORE_THAN_N_MATCHES,
                           std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR) + 1)));
   default: {
     Logger &log_{Logger::instance()};
@@ -225,30 +225,11 @@ OpPtr Expression::buildOperationFromToken(Token const &token)
 }
 
 /**
- * Undoes the work of a previous Compile call.
- * Since compilation could be called multiple times during graph construction, this is
- * necessary to avoid duplicate connections
- */
-void Expression::resetCompile()
-{
-  for (auto &connection : connections_)
-  {
-    auto node_name   = connection.first;
-    auto node_inputs = connection.second;
-
-    // remove inputs and output from the node
-    nodes_.at(node_name)->resetInputsAndOutputs();
-  }
-}
-
-/**
  * uses the connections object to link together inputs to nodes
  * Having a separate compile stage allows for arbitrary order of addNode calls
  */
 void Expression::compile()
 {
-  resetCompile();
-
   // set inputs and outputs to nodes and set trainables
   for (auto &connection : connections_)
   {
@@ -310,7 +291,7 @@ Expression::NodePtrType Expression::getNode(const std::string &node_name)
 
 /**
  * Connect the new node to the current graph by setting input and output nodes to it and saving it
- * in the lookup table. Can also be used by ResetCompile to unlink previously linked nodes
+ * in the lookup table.
  * @param node_name
  * @param inputs
  */

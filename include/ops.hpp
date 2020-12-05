@@ -1,11 +1,13 @@
 #pragma once
 
+#include "types.hpp"
+
 #include <functional>
+#include <map>
 #include <memory>
 #include <vector>
-#include <map>
 
-#include "types.hpp"
+class IEngine;
 
 enum class OperationType
 {
@@ -26,13 +28,14 @@ enum class OperationType
 
 extern const std::map<OperationType, std::string> OP_NAMES;
 
-class IOperation
+class Operation
 {
 public:
-  IOperation(OperationType type)
+  Operation(IEngine &engine, OperationType type)
     : type_(type)
+    , engine_(engine)
   {}
-  virtual ~IOperation() = default;
+  virtual ~Operation() = default;
 
   virtual std::shared_ptr<Set> evaluate(SetPtrEnsemble const &inputs) = 0;
 
@@ -47,47 +50,48 @@ public:
 
 protected:
   OperationType type_ = OperationType::INVALID;
+  IEngine &     engine_;
 };
 
-using OpPtr = std::shared_ptr<IOperation>;
+using OpPtr = std::shared_ptr<Operation>;
 
-class OpDifference : public IOperation
+class OpDifference : public Operation
 {
 public:
-  explicit OpDifference();
+  explicit OpDifference(IEngine &engine);
   SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 };
 
-class OpIntersection : public IOperation
+class OpIntersection : public Operation
 {
 public:
-  explicit OpIntersection();
+  explicit OpIntersection(IEngine &engine);
   SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 };
 
-class OpUnion : public IOperation
+class OpUnion : public Operation
 {
 public:
-  explicit OpUnion();
+  explicit OpUnion(IEngine &engine);
   SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 };
 
-class OpFileReader : public IOperation
+class OpFileReader : public Operation
 {
 public:
-  explicit OpFileReader(std::string const &filename);
+  explicit OpFileReader(IEngine &engine, std::string const &filename);
   ~OpFileReader() override = default;
   SetPtr evaluate(const SetPtrEnsemble &) override;
 
 private:
   std::string filename_;
-  SetPtr   cache_{};
+  SetPtr      cache_{};
 };
 
-class OpHardcoded : public IOperation
+class OpHardcoded : public Operation
 {
 public:
-  explicit OpHardcoded(Set const &data);
+  explicit OpHardcoded(IEngine &engine, Set const &data);
   ~OpHardcoded() override = default;
   SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
@@ -95,30 +99,30 @@ private:
   Set data_;
 };
 
-class OpKeepIfMoreThanNMatches : public IOperation
+class OpKeepIfMoreThanNMatches : public Operation
 {
 public:
-  explicit OpKeepIfMoreThanNMatches(int parameter);
+  explicit OpKeepIfMoreThanNMatches(IEngine &engine, int parameter);
   SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;
 };
 
-class OpKeepIfLessThanNMatches : public IOperation
+class OpKeepIfLessThanNMatches : public Operation
 {
 public:
-  explicit OpKeepIfLessThanNMatches(int parameter);
+  explicit OpKeepIfLessThanNMatches(IEngine &engine, int parameter);
   SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;
 };
 
-class OpKeepIfPreciselyNMatches : public IOperation
+class OpKeepIfPreciselyNMatches : public Operation
 {
 public:
-  explicit OpKeepIfPreciselyNMatches(int parameter);
+  explicit OpKeepIfPreciselyNMatches(IEngine &engine, int parameter);
   SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
 private:
@@ -127,8 +131,7 @@ private:
 
 /// A family of standalone fabrics to produce a necessary Operation depending on itsy type and
 /// arguments.
-OpPtr buildOperation(OperationType type);
-OpPtr buildOperation(OperationType type, const std::string &filename);
-OpPtr buildOperation(OperationType type, Set const &data);
-OpPtr buildOperation(OperationType type, int parameter);
-
+OpPtr buildOperation(IEngine &engine, OperationType type);
+OpPtr buildOperation(IEngine &engine, OperationType type, const std::string &filename);
+OpPtr buildOperation(IEngine &engine, OperationType type, Set const &data);
+OpPtr buildOperation(IEngine &engine, OperationType type, int parameter);

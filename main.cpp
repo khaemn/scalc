@@ -1,10 +1,10 @@
-#include <iostream>
-#include <string>
-#include <chrono>
-#include <algorithm>
-
 #include "engine.hpp"
 #include "expression.hpp"
+
+#include <algorithm>
+#include <chrono>
+#include <iostream>
+#include <string>
 
 int main(int argc, char **argv)
 {
@@ -31,22 +31,28 @@ int main(int argc, char **argv)
     std::cout << "Example expression: " << user_input << std::endl;
   }
 
+  Engine     engine;
+  Expression expression(engine);
+
   try
   {
-    Expression expression = Expression::buildFromUserInput(user_input);
+    expression.buildFromUserInput(user_input);
 
     auto start = std::chrono::system_clock::now();
+
     const auto result = expression.evaluate();
+
     std::vector<DataType> output;
     output.reserve(result.size());
     std::copy(result.begin(), result.end(), std::back_inserter(output));
     std::sort(output.begin(), output.end());
+
     auto end = std::chrono::system_clock::now();
 
-    std::cout << "Result of size " << result.size() << ", processed total "
-              << Engine::total_processed() << " elements in "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-              << " milliseconds:\n\n";
+    Logger::instance() << "Result of size " << result.size() << ", processed total "
+                       << engine.total_processed() << " elements in "
+                       << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+                       << " milliseconds:\n\n";
 
     Helpers::printVectorToCout(output);
   }

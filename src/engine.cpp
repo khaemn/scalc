@@ -26,8 +26,6 @@ void printVectorInLine(const Set &set)
 
 }  // namespace Helpers
 
-size_t Engine::total_processed_{0};
-
 MatchMap Engine::count_matches(const SetPtrEnsemble &sets)
 {
   MatchMap matches;

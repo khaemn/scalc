@@ -29,47 +29,47 @@ void validateTypeIsIn(OperationType type, const std::set<OperationType> allowed_
   }
 }
 
-OpPtr buildOperation(OperationType type)
+OpPtr buildOperation(IEngine &engine, OperationType type)
 {
   switch (type)
   {
   case OperationType::DIFFERENCE:
-    return std::static_pointer_cast<IOperation>(std::make_shared<OpDifference>());
+    return std::static_pointer_cast<Operation>(std::make_shared<OpDifference>(engine));
   case OperationType::UNION:
-    return std::static_pointer_cast<IOperation>(std::make_shared<OpUnion>());
+    return std::static_pointer_cast<Operation>(std::make_shared<OpUnion>(engine));
   case OperationType::INTERSECTION:
-    return std::static_pointer_cast<IOperation>(std::make_shared<OpIntersection>());
+    return std::static_pointer_cast<Operation>(std::make_shared<OpIntersection>(engine));
   default:
     throw std::runtime_error("Can not build operation of type " + OP_NAMES.at(type) +
                              " without an argument or parameter.");
   }
 }
 
-OpPtr buildOperation(OperationType type, std::string const &filename)
+OpPtr buildOperation(IEngine &engine, OperationType type, std::string const &filename)
 {
   validateTypeIsIn(type, {OperationType::FILEREADER});
-  return std::static_pointer_cast<IOperation>(std::make_shared<OpFileReader>(filename));
+  return std::static_pointer_cast<Operation>(std::make_shared<OpFileReader>(engine, filename));
 }
 
-OpPtr buildOperation(OperationType type, Set const &data)
+OpPtr buildOperation(IEngine &engine, OperationType type, Set const &data)
 {
   validateTypeIsIn(type, {OperationType::CONST_VECTOR});
-  return std::static_pointer_cast<IOperation>(std::make_shared<OpHardcoded>(data));
+  return std::static_pointer_cast<Operation>(std::make_shared<OpHardcoded>(engine, data));
 }
 
-OpPtr buildOperation(OperationType type, int parameter)
+OpPtr buildOperation(IEngine &engine, OperationType type, int parameter)
 {
   switch (type)
   {
   case OperationType::KEEP_IF_PRECISELY_N_MATCHES:
-    return std::static_pointer_cast<IOperation>(
-        std::make_shared<OpKeepIfPreciselyNMatches>(parameter));
+    return std::static_pointer_cast<Operation>(
+        std::make_shared<OpKeepIfPreciselyNMatches>(engine, parameter));
   case OperationType::KEEP_IF_MORE_THAN_N_MATCHES:
-    return std::static_pointer_cast<IOperation>(
-        std::make_shared<OpKeepIfMoreThanNMatches>(parameter));
+    return std::static_pointer_cast<Operation>(
+        std::make_shared<OpKeepIfMoreThanNMatches>(engine, parameter));
   case OperationType::KEEP_IF_LESS_THAN_N_MATCHES:
-    return std::static_pointer_cast<IOperation>(
-        std::make_shared<OpKeepIfLessThanNMatches>(parameter));
+    return std::static_pointer_cast<Operation>(
+        std::make_shared<OpKeepIfLessThanNMatches>(engine, parameter));
   default:
     break;
   }
@@ -77,51 +77,49 @@ OpPtr buildOperation(OperationType type, int parameter)
                            " with an integer parameter.");
 }
 
-OpDifference::OpDifference()
-  : IOperation(OperationType::DIFFERENCE)
+OpDifference::OpDifference(IEngine &engine)
+  : Operation(engine, OperationType::DIFFERENCE)
 {}
 
 SetPtr OpDifference::evaluate(const SetPtrEnsemble &inputs)
 {
-  return Engine::sets_difference(inputs);
+  return engine_.sets_difference(inputs);
 }
 
-OpIntersection::OpIntersection()
-  : IOperation(OperationType::INTERSECTION)
+OpIntersection::OpIntersection(IEngine &engine)
+  : Operation(engine, OperationType::INTERSECTION)
 {}
 
 SetPtr OpIntersection::evaluate(const SetPtrEnsemble &inputs)
 {
-  return Engine::sets_intersection(inputs);
+  return engine_.sets_intersection(inputs);
 }
 
-OpUnion::OpUnion()
-  : IOperation(OperationType::UNION)
+OpUnion::OpUnion(IEngine &engine)
+  : Operation(engine, OperationType::UNION)
 {}
 
 SetPtr OpUnion::evaluate(const SetPtrEnsemble &inputs)
 {
-  return Engine::sets_union(inputs);
+  return engine_.sets_union(inputs);
 }
 
-OpFileReader::OpFileReader(const std::string &filename)
-  : IOperation(OperationType::FILEREADER)
+OpFileReader::OpFileReader(IEngine &engine, const std::string &filename)
+  : Operation(engine, OperationType::FILEREADER)
   , filename_(filename)
 {}
-
-extern size_t TOTAL_PROCESSED_ELEMENTS;
 
 SetPtr OpFileReader::evaluate(const SetPtrEnsemble &)
 {
   if (!cache_)
   {
-    cache_ = Engine::read_file(filename_);
+    cache_ = engine_.read_file(filename_);
   }
   return cache_;
 }
 
-OpHardcoded::OpHardcoded(const Set &data)
-  : IOperation(OperationType::CONST_VECTOR)
+OpHardcoded::OpHardcoded(IEngine &engine, const Set &data)
+  : Operation(engine, OperationType::CONST_VECTOR)
   , data_(data)
 {}
 
@@ -130,32 +128,32 @@ SetPtr OpHardcoded::evaluate(const SetPtrEnsemble &)
   return std::make_shared<Set>(data_);
 }
 
-OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
-  : IOperation(OperationType::KEEP_IF_MORE_THAN_N_MATCHES)
+OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(IEngine &engine, int parameter)
+  : Operation(engine, OperationType::KEEP_IF_MORE_THAN_N_MATCHES)
   , parameter_(parameter)
 {}
 
 SetPtr OpKeepIfMoreThanNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  return Engine::keep_if_greater_than_n_matches(inputs, parameter_);
+  return engine_.keep_if_greater_than_n_matches(inputs, parameter_);
 }
 
-OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
-  : IOperation(OperationType::KEEP_IF_LESS_THAN_N_MATCHES)
+OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(IEngine &engine, int parameter)
+  : Operation(engine, OperationType::KEEP_IF_LESS_THAN_N_MATCHES)
   , parameter_(parameter)
 {}
 
 SetPtr OpKeepIfLessThanNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  return Engine::keep_if_less_than_n_matches(inputs, parameter_);
+  return engine_.keep_if_less_than_n_matches(inputs, parameter_);
 }
 
-OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
-  : IOperation(OperationType::KEEP_IF_PRECISELY_N_MATCHES)
+OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(IEngine &engine, int parameter)
+  : Operation(engine, OperationType::KEEP_IF_PRECISELY_N_MATCHES)
   , parameter_(parameter)
 {}
 
 SetPtr OpKeepIfPreciselyNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  return Engine::keep_if_precisely_n_matches(inputs, parameter_);
+  return engine_.keep_if_precisely_n_matches(inputs, parameter_);
 }

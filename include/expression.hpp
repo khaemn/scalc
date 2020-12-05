@@ -7,21 +7,20 @@
 #include <map>
 #include <vector>
 
+class IEngine;
+
 class Expression
 {
 public:
   using NodePtrType = std::shared_ptr<Node>;
 
-  static Expression buildFromUserInput(std::string const &input);
-  static Expression buildFromTokens(std::vector<Token> const &tokens);
-  static OpPtr      buildOperationFromToken(Token const &token);
+  explicit Expression(IEngine& engine);
+  void buildFromUserInput(std::string const &input);
+  void buildFromTokens(std::vector<Token> const &tokens);
 
   template <OperationType op_type, typename... Params>
   Node::NodeWeakPtr addNode(std::string const &node_name, std::vector<std::string> const &inputs,
                             Params... params);
-
-  void resetCompile();
-  void compile();
 
   Set evaluate(std::string const &node_name);
   Set evaluate();
@@ -37,9 +36,14 @@ protected:
   std::vector<std::pair<std::string, std::vector<std::string>>> connections_;
 
 private:
+  OpPtr buildOperationFromToken(Token const &token);
+
+  void compile();
   void linkNodesInGraph(std::string const &node_name, std::vector<std::string> const &inputs);
 
+  IEngine& engine_;
   std::string output_node_name_{};
+  bool is_compiled_{false};
 
   Logger &log_{Logger::instance()};
 };

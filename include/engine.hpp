@@ -3,27 +3,44 @@
 #include "ops.hpp"
 #include "types.hpp"
 
-class Engine
+class IEngine
 {
 public:
-  static SetPtr keep_if_less_than_n_matches(const SetPtrEnsemble &sets, int n);
-  static SetPtr keep_if_precisely_n_matches(const SetPtrEnsemble &sets, int n);
-  static SetPtr keep_if_greater_than_n_matches(const SetPtrEnsemble &sets, int n);
+  IEngine()                                                                        = default;
+  virtual ~IEngine()                                                               = default;
+  virtual SetPtr keep_if_less_than_n_matches(const SetPtrEnsemble &sets, int n)    = 0;
+  virtual SetPtr keep_if_precisely_n_matches(const SetPtrEnsemble &sets, int n)    = 0;
+  virtual SetPtr keep_if_greater_than_n_matches(const SetPtrEnsemble &sets, int n) = 0;
 
-  static SetPtr sets_intersection(const SetPtrEnsemble &sets);
-  static SetPtr sets_difference(const SetPtrEnsemble &sets);
-  static SetPtr sets_union(const SetPtrEnsemble &sets);
+  virtual SetPtr sets_intersection(const SetPtrEnsemble &sets) = 0;
+  virtual SetPtr sets_difference(const SetPtrEnsemble &sets)   = 0;
+  virtual SetPtr sets_union(const SetPtrEnsemble &sets)        = 0;
 
-  static SetPtr read_file(const std::string filename);
+  virtual SetPtr read_file(const std::string filename) = 0;
+};
 
-  static size_t total_processed();
+class Engine : public IEngine
+{
+public:
+  SetPtr keep_if_less_than_n_matches(const SetPtrEnsemble &sets, int n) override;
+  SetPtr keep_if_precisely_n_matches(const SetPtrEnsemble &sets, int n) override;
+  SetPtr keep_if_greater_than_n_matches(const SetPtrEnsemble &sets, int n) override;
+
+  SetPtr sets_intersection(const SetPtrEnsemble &sets) override;
+  SetPtr sets_difference(const SetPtrEnsemble &sets) override;
+  SetPtr sets_union(const SetPtrEnsemble &sets) override;
+
+  SetPtr read_file(const std::string filename) override;
+
+  size_t total_processed();
 
 private:
-  static MatchMap count_matches(const SetPtrEnsemble &sets);
-  static SetPtr   keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condition);
+  MatchMap count_matches(const SetPtrEnsemble &sets);
+  SetPtr   keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condition);
 
-  static size_t total_processed_;
+  size_t total_processed_{0};
 };
+
 namespace Helpers {
 
 void printVectorToCout(const std::vector<DataType> &vec);
