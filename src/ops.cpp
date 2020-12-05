@@ -109,6 +109,7 @@ OpFileReader::OpFileReader(const std::string &filename)
   , filename_(filename)
 {}
 
+extern size_t TOTAL_PROCESSED_ELEMENTS;
 VectorPtr OpFileReader::evaluate(const InputData &)
 {
   if (cache_)
@@ -130,13 +131,14 @@ VectorPtr OpFileReader::evaluate(const InputData &)
     if (prev_value > value)
     {
       throw std::runtime_error("file '" + filename_ +
-                               "' contains unsorted data, further processing results would be "
+                               "' contains unsorted data, further processing results can be "
                                "invalid.");
     }
     prev_value = value;
     result->insert(value);
   }
   cache_ = result;
+  TOTAL_PROCESSED_ELEMENTS += result->size();
   return result;
 }
 
@@ -158,7 +160,7 @@ OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
 VectorPtr OpKeepIfMoreThanNMatches::evaluate(const InputData &inputs)
 {
   Logger::instance() << "OpKeepIfMoreThan" << parameter_ << "Matches::evaluate" << std::endl;
-  return naive_keep_if_greater_than_n_matches(inputs, parameter_);
+  return keep_if_greater_than_n_matches(inputs, parameter_);
 }
 
 OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
@@ -169,7 +171,7 @@ OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
 VectorPtr OpKeepIfLessThanNMatches::evaluate(const InputData &inputs)
 {
   Logger::instance() << "OpKeepIfLessThan" << parameter_ << "Matches::evaluate" << std::endl;
-  return naive_keep_if_less_than_n_matches(inputs, parameter_);
+  return keep_if_less_than_n_matches(inputs, parameter_);
 }
 
 OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
@@ -180,5 +182,5 @@ OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
 VectorPtr OpKeepIfPreciselyNMatches::evaluate(const InputData &inputs)
 {
   Logger::instance() << "OpKeepIfPrecisely" << parameter_ << "Matches::evaluate" << std::endl;
-  return naive_keep_if_precisely_n_matches(inputs, parameter_);
+  return keep_if_precisely_n_matches(inputs, parameter_);
 }

@@ -101,9 +101,9 @@ VectorPtr naive_union(const InputData &sets)
 
 namespace Helpers {
 
-void printVectorToCout(const DataVector &set)
+void printVectorToCout(const std::vector<DataType> &vec)
 {
-  for (auto value : set)
+  for (auto value : vec)
   {
     std::cout << value << std::endl;
   }
@@ -118,6 +118,31 @@ void printVectorInLine(const DataVector &set)
 }
 
 }  // namespace Helpers
+
+extern size_t TOTAL_PROCESSED_ELEMENTS;
+MatchMap count_matches_simplified(const InputData &sets)
+{
+  MatchMap matches;
+  size_t output_size_rough_prediction = 0;
+  for (const auto &set : sets)
+  {
+    output_size_rough_prediction += set->size();
+  }
+  TOTAL_PROCESSED_ELEMENTS += output_size_rough_prediction;
+  // A rough estimate of an average match-count operation for
+  // large sets with dense value distribution is about half of
+  // the total elements count.
+  matches.reserve(output_size_rough_prediction / 2);
+
+  for (const auto &set : sets)
+  {
+    for (const auto &element : *set)
+    {
+      matches[element] += 1;
+    }
+  }
+  return matches;
+}
 
 MatchMap count_matches(const InputData &sets)
 {
@@ -166,18 +191,19 @@ MatchMap count_matches(const InputData &sets)
     current++;
     other = sets.begin();
   }
-  log << "===== Match map : ===\n";
-  for (const auto m : matches)
-  {
-    log << m.first << " : " << m.second << " \n";
-  }
-  log << "=====================\n";
+//  log << "===== Match map : ===\n";
+//  for (const auto m : matches)
+//  {
+//    log << m.first << " : " << m.second << " \n";
+//  }
+//  log << "=====================\n";
   return matches;
 }
 
 VectorPtr keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condition)
 {
   auto result = std::make_shared<DataVector>();
+  result->reserve(matches.size() / 2);
   for (const auto &match : matches)
   {
     if (condition(match.second))
@@ -185,26 +211,43 @@ VectorPtr keep_matches_if(MatchMap &&matches, std::function<bool(size_t)> condit
       result->insert(match.first);
     }
   }
-  //std::sort(result->begin(), result->end());
-  Logger::instance() << "keep_if result:\n";
-  Helpers::printVectorInLine(*result);
+  TOTAL_PROCESSED_ELEMENTS += matches.size();
   return result;
 }
 
-VectorPtr naive_keep_if_less_than_n_matches(const InputData &sets, int n)
+VectorPtr keep_if_less_than_n_matches(const InputData &sets, int n)
 {
   auto condition = [&n](size_t matches) { return matches < size_t(n); };
-  return keep_matches_if(count_matches(sets), condition);
+  return keep_matches_if(count_matches_simplified(sets), condition);
 }
 
-VectorPtr naive_keep_if_precisely_n_matches(const InputData &sets, int n)
+VectorPtr keep_if_precisely_n_matches(const InputData &sets, int n)
 {
   auto condition = [&n](size_t matches) { return matches == size_t(n); };
-  return keep_matches_if(count_matches(sets), condition);
+  return keep_matches_if(count_matches_simplified(sets), condition);
 }
 
-VectorPtr naive_keep_if_greater_than_n_matches(const InputData &sets, int n)
+VectorPtr keep_if_greater_than_n_matches(const InputData &sets, int n)
 {
   auto condition = [&n](size_t matches) { return matches > size_t(n); };
-  return keep_matches_if(count_matches(sets), condition);
+  return keep_matches_if(count_matches_simplified(sets), condition);
+}
+
+VectorPtr sets_intersection(const InputData &sets)
+{
+  // Intersection of the N sets are all elements which occurs in
+  // each set, e.g. N times.
+  return keep_if_precisely_n_matches(sets, int(sets.size()));
+}
+
+VectorPtr sets_difference(const InputData &sets)
+{
+  // Difference of N sets are all the elements which occurs exactly once.
+  return keep_if_precisely_n_matches(sets, 1);
+}
+
+VectorPtr sets_union(const InputData &sets)
+{
+  // Union of N sets contains all elements which occurs at least once.
+  return keep_if_greater_than_n_matches(sets, 0);
 }

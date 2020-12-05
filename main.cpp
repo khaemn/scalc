@@ -1,9 +1,12 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <algorithm>
 
 #include "functions.hpp"
 #include "graph.hpp"
+
+size_t TOTAL_PROCESSED_ELEMENTS=0;
 
 int main(int argc, char **argv)
 {
@@ -36,13 +39,18 @@ int main(int argc, char **argv)
 
     auto start = std::chrono::system_clock::now();
     const auto result = expression.evaluate();
+    std::vector<DataType> output;
+    output.reserve(result.size());
+    std::copy(result.begin(), result.end(), std::back_inserter(output));
+    std::sort(output.begin(), output.end());
     auto end = std::chrono::system_clock::now();
 
-    std::cout << "Result of size " << result.size() << " in "
+    std::cout << "Result of size " << result.size() << ", processed total "
+              << TOTAL_PROCESSED_ELEMENTS << " elements in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
               << " milliseconds:\n\n";
 
-    Helpers::printVectorToCout(result);
+    Helpers::printVectorToCout(output);
   }
   catch (std::exception &e)
   {

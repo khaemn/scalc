@@ -6,9 +6,10 @@
 #include <vector>
 #include <map>
 #include <unordered_set>
+#include <unordered_map>
 
 using DataType   = int64_t;
-using MatchMap   = std::map<DataType, size_t>;
+using MatchMap   = std::unordered_map<DataType, size_t>;
 using DataVector = std::unordered_set<DataType>;
 using VectorPtr  = std::shared_ptr<DataVector>;
 using InputData  = std::vector<VectorPtr>;
