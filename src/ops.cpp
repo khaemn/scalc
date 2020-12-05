@@ -81,7 +81,7 @@ OpDifference::OpDifference(IEngine &engine)
   : Operation(engine, OperationType::DIFFERENCE)
 {}
 
-SetPtr OpDifference::evaluate(const SetPtrEnsemble &inputs)
+SetPtr OpDifference::execute(const SetPtrEnsemble &inputs)
 {
   return engine_.sets_difference(inputs);
 }
@@ -90,7 +90,7 @@ OpIntersection::OpIntersection(IEngine &engine)
   : Operation(engine, OperationType::INTERSECTION)
 {}
 
-SetPtr OpIntersection::evaluate(const SetPtrEnsemble &inputs)
+SetPtr OpIntersection::execute(const SetPtrEnsemble &inputs)
 {
   return engine_.sets_intersection(inputs);
 }
@@ -99,7 +99,7 @@ OpUnion::OpUnion(IEngine &engine)
   : Operation(engine, OperationType::UNION)
 {}
 
-SetPtr OpUnion::evaluate(const SetPtrEnsemble &inputs)
+SetPtr OpUnion::execute(const SetPtrEnsemble &inputs)
 {
   return engine_.sets_union(inputs);
 }
@@ -109,7 +109,7 @@ OpFileReader::OpFileReader(IEngine &engine, const std::string &filename)
   , filename_(filename)
 {}
 
-SetPtr OpFileReader::evaluate(const SetPtrEnsemble &)
+SetPtr OpFileReader::execute(const SetPtrEnsemble &)
 {
   if (!cache_)
   {
@@ -123,7 +123,7 @@ OpHardcoded::OpHardcoded(IEngine &engine, const Set &data)
   , data_(data)
 {}
 
-SetPtr OpHardcoded::evaluate(const SetPtrEnsemble &)
+SetPtr OpHardcoded::execute(const SetPtrEnsemble &)
 {
   return std::make_shared<Set>(data_);
 }
@@ -133,7 +133,7 @@ OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(IEngine &engine, int paramete
   , parameter_(parameter)
 {}
 
-SetPtr OpKeepIfMoreThanNMatches::evaluate(const SetPtrEnsemble &inputs)
+SetPtr OpKeepIfMoreThanNMatches::execute(const SetPtrEnsemble &inputs)
 {
   return engine_.keep_if_greater_than_n_matches(inputs, parameter_);
 }
@@ -143,7 +143,7 @@ OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(IEngine &engine, int paramete
   , parameter_(parameter)
 {}
 
-SetPtr OpKeepIfLessThanNMatches::evaluate(const SetPtrEnsemble &inputs)
+SetPtr OpKeepIfLessThanNMatches::execute(const SetPtrEnsemble &inputs)
 {
   return engine_.keep_if_less_than_n_matches(inputs, parameter_);
 }
@@ -153,7 +153,7 @@ OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(IEngine &engine, int parame
   , parameter_(parameter)
 {}
 
-SetPtr OpKeepIfPreciselyNMatches::evaluate(const SetPtrEnsemble &inputs)
+SetPtr OpKeepIfPreciselyNMatches::execute(const SetPtrEnsemble &inputs)
 {
   return engine_.keep_if_precisely_n_matches(inputs, parameter_);
 }

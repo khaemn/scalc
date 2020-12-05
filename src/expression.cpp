@@ -185,7 +185,6 @@ void Expression::buildFromTokens(std::vector<Token> const &tokens)
     throw std::runtime_error("Input parsing failed! Unparsed/invalid input lexem : " +
                              stack.back().value);
   }
-  is_compiled_ = true;
 }
 
 /**
@@ -225,7 +224,7 @@ OpPtr Expression::buildOperationFromToken(Token const &token)
 }
 
 /**
- * uses the connections object to link together inputs to nodes
+ * Uses the connections object to link together inputs to nodes
  * Having a separate compile stage allows for arbitrary order of addNode calls
  */
 void Expression::compile()
@@ -237,10 +236,11 @@ void Expression::compile()
     auto node_inputs = connection.second;
     linkNodesInGraph(node_name, node_inputs);
   }
+  is_compiled_ = true;
 }
 
 /**
- * Evaluates the output of a node (calling all necessary forward prop)
+ * Evaluates the output of a node (calling all necessary evaluations)
  * @param node_name name of node to evaluate for output
  * @return a copy of the output tensor
  */
@@ -298,11 +298,9 @@ Expression::NodePtrType Expression::getNode(const std::string &node_name)
 void Expression::linkNodesInGraph(std::string const &             node_name,
                                   std::vector<std::string> const &inputs)
 {
-  // assign inputs and outputs
   for (auto const &i : inputs)
   {
     nodes_.at(node_name)->addInput(nodes_.at(i));
-    nodes_[i]->addOutput(nodes_[node_name]);
   }
 }
 

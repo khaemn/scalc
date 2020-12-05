@@ -37,7 +37,7 @@ public:
   {}
   virtual ~Operation() = default;
 
-  virtual std::shared_ptr<Set> evaluate(SetPtrEnsemble const &inputs) = 0;
+  virtual std::shared_ptr<Set> execute(SetPtrEnsemble const &inputs) = 0;
 
   virtual OperationType type() const
   {
@@ -59,21 +59,21 @@ class OpDifference : public Operation
 {
 public:
   explicit OpDifference(IEngine &engine);
-  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
+  SetPtr execute(const SetPtrEnsemble &inputs) override;
 };
 
 class OpIntersection : public Operation
 {
 public:
   explicit OpIntersection(IEngine &engine);
-  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
+  SetPtr execute(const SetPtrEnsemble &inputs) override;
 };
 
 class OpUnion : public Operation
 {
 public:
   explicit OpUnion(IEngine &engine);
-  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
+  SetPtr execute(const SetPtrEnsemble &inputs) override;
 };
 
 class OpFileReader : public Operation
@@ -81,7 +81,7 @@ class OpFileReader : public Operation
 public:
   explicit OpFileReader(IEngine &engine, std::string const &filename);
   ~OpFileReader() override = default;
-  SetPtr evaluate(const SetPtrEnsemble &) override;
+  SetPtr execute(const SetPtrEnsemble &) override;
 
 private:
   std::string filename_;
@@ -93,7 +93,7 @@ class OpHardcoded : public Operation
 public:
   explicit OpHardcoded(IEngine &engine, Set const &data);
   ~OpHardcoded() override = default;
-  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
+  SetPtr execute(const SetPtrEnsemble &inputs) override;
 
 private:
   Set data_;
@@ -103,7 +103,7 @@ class OpKeepIfMoreThanNMatches : public Operation
 {
 public:
   explicit OpKeepIfMoreThanNMatches(IEngine &engine, int parameter);
-  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
+  SetPtr execute(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;
@@ -113,7 +113,7 @@ class OpKeepIfLessThanNMatches : public Operation
 {
 public:
   explicit OpKeepIfLessThanNMatches(IEngine &engine, int parameter);
-  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
+  SetPtr execute(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;
@@ -123,7 +123,7 @@ class OpKeepIfPreciselyNMatches : public Operation
 {
 public:
   explicit OpKeepIfPreciselyNMatches(IEngine &engine, int parameter);
-  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
+  SetPtr execute(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;

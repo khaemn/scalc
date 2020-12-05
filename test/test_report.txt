@@ -114,7 +114,7 @@ elements    sec     outputs
 48M         24      4323650
 93M         41      4323650
 100M        46      4323650
-118M        66      4323650
+118M        66      4323650  --70 sec. if use the dynamic polymorphism! (not good, heh)
 184M        51      432113
 
 
