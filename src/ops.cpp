@@ -1,6 +1,6 @@
 #include "ops.hpp"
 
-#include "functions.hpp"
+#include "engine.hpp"
 #include "logger.hpp"
 
 #include <algorithm>
@@ -83,7 +83,7 @@ OpDifference::OpDifference()
 
 SetPtr OpDifference::evaluate(const SetPtrEnsemble &inputs)
 {
-  return sets_difference(inputs);
+  return Engine::sets_difference(inputs);
 }
 
 OpIntersection::OpIntersection()
@@ -92,7 +92,7 @@ OpIntersection::OpIntersection()
 
 SetPtr OpIntersection::evaluate(const SetPtrEnsemble &inputs)
 {
-  return sets_intersection(inputs);
+  return Engine::sets_intersection(inputs);
 }
 
 OpUnion::OpUnion()
@@ -101,7 +101,7 @@ OpUnion::OpUnion()
 
 SetPtr OpUnion::evaluate(const SetPtrEnsemble &inputs)
 {
-  return sets_union(inputs);
+  return Engine::sets_union(inputs);
 }
 
 OpFileReader::OpFileReader(const std::string &filename)
@@ -113,34 +113,11 @@ extern size_t TOTAL_PROCESSED_ELEMENTS;
 
 SetPtr OpFileReader::evaluate(const SetPtrEnsemble &)
 {
-  if (cache_)
+  if (!cache_)
   {
-    return cache_;
+    cache_ = Engine::read_file(filename_);
   }
-  std::ifstream ifs;
-  ifs.open(filename_, std::ifstream::in);
-  if (!ifs.is_open())
-  {
-    throw std::runtime_error("can not open '" + filename_ + "', nothing to process.");
-  }
-  auto result = std::make_shared<Set>();
-
-  int prev_value = std::numeric_limits<int>::min();
-  int value      = std::numeric_limits<int>::min();
-  while (ifs >> value)
-  {
-    if (prev_value > value)
-    {
-      throw std::runtime_error("file '" + filename_ +
-                               "' contains unsorted data, further processing results can be "
-                               "invalid.");
-    }
-    prev_value = value;
-    result->insert(value);
-  }
-  cache_ = result;
-  TOTAL_PROCESSED_ELEMENTS += result->size();
-  return result;
+  return cache_;
 }
 
 OpHardcoded::OpHardcoded(const Set &data)
@@ -160,7 +137,7 @@ OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
 
 SetPtr OpKeepIfMoreThanNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  return keep_if_greater_than_n_matches(inputs, parameter_);
+  return Engine::keep_if_greater_than_n_matches(inputs, parameter_);
 }
 
 OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
@@ -170,7 +147,7 @@ OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
 
 SetPtr OpKeepIfLessThanNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  return keep_if_less_than_n_matches(inputs, parameter_);
+  return Engine::keep_if_less_than_n_matches(inputs, parameter_);
 }
 
 OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
@@ -180,5 +157,5 @@ OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
 
 SetPtr OpKeepIfPreciselyNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  return keep_if_precisely_n_matches(inputs, parameter_);
+  return Engine::keep_if_precisely_n_matches(inputs, parameter_);
 }

@@ -10,9 +10,9 @@ include_directories(include)
 set(HEADERS
   include/types.hpp
   include/node.hpp
-  include/functions.hpp
+  include/engine.hpp
   include/ops.hpp
-  include/graph.hpp
+  include/expression.hpp
   include/lexer.hpp
   include/logger.hpp
 
@@ -21,9 +21,9 @@ set(HEADERS
 
 set(SOURCES
   main.cpp
-  src/functions.cpp
+  src/engine.cpp
   src/node.cpp
-  src/graph.cpp
+  src/expression.cpp
   src/lexer.cpp
   src/ops.cpp
   )

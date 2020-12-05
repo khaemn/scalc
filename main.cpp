@@ -3,10 +3,8 @@
 #include <chrono>
 #include <algorithm>
 
-#include "functions.hpp"
-#include "graph.hpp"
-
-size_t TOTAL_PROCESSED_ELEMENTS=0;
+#include "engine.hpp"
+#include "expression.hpp"
 
 int main(int argc, char **argv)
 {
@@ -35,7 +33,7 @@ int main(int argc, char **argv)
 
   try
   {
-    Graph expression = Graph::buildFromUserInput(user_input);
+    Expression expression = Expression::buildFromUserInput(user_input);
 
     auto start = std::chrono::system_clock::now();
     const auto result = expression.evaluate();
@@ -46,7 +44,7 @@ int main(int argc, char **argv)
     auto end = std::chrono::system_clock::now();
 
     std::cout << "Result of size " << result.size() << ", processed total "
-              << TOTAL_PROCESSED_ELEMENTS << " elements in "
+              << Engine::total_processed() << " elements in "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
               << " milliseconds:\n\n";
 

@@ -1,13 +1,13 @@
-#include "graph.hpp"
+#include "expression.hpp"
+
+#include "lexer.hpp"
 
 #include <iostream>
 #include <limits>
 #include <set>
 #include <vector>
 
-#include "lexer.hpp"
-
-static constexpr auto PARAM_SEPARATOR {"|"};
+static constexpr auto PARAM_SEPARATOR{"|"};
 
 /**
  * @brief Parses user input to a list of tokens and builds expression Graph from it
@@ -15,7 +15,7 @@ static constexpr auto PARAM_SEPARATOR {"|"};
  * separated with spaces.
  * @return A compiled Graph object
  */
-Graph Graph::buildFromUserInput(const std::string &input)
+Expression Expression::buildFromUserInput(const std::string &input)
 {
   std::vector<Token> tokens = Lexer::parseUserInput(input);
   return buildFromTokens(tokens);
@@ -26,10 +26,10 @@ Graph Graph::buildFromUserInput(const std::string &input)
  * @param tokens
  * @return A compiled Graph object
  */
-Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
+Expression Expression::buildFromTokens(std::vector<Token> const &tokens)
 {
   Logger &log{Logger::instance()};
-  using NodePtr                = Graph::NodePtrType;
+  using NodePtr                = Expression::NodePtrType;
   using NodeBuffer             = std::vector<NodePtr>;
   using NodeMatrix             = std::vector<NodeBuffer>;
   static constexpr auto INDENT = "   ";
@@ -37,8 +37,8 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
   std::vector<Token> stack;
   stack.reserve(tokens.size());
 
-  size_t node_counter = 0;
-  Graph  graph;
+  size_t     node_counter = 0;
+  Expression expression;
 
   NodeMatrix unlinked_nodes;
   size_t     depth = 0;
@@ -47,10 +47,9 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
   Lexer::printTokens(tokens);
   log << "\n";
 
-
-  for (size_t token_idx {0}; token_idx < tokens.size(); ++token_idx)
+  for (size_t token_idx{0}; token_idx < tokens.size(); ++token_idx)
   {
-    const Token& token = tokens.at(token_idx);
+    const Token &token = tokens.at(token_idx);
     Lexer::printTokens(stack);
     log << INDENT << ">" << token.value << "<"
         << "\n";
@@ -71,7 +70,7 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
         Token parametrized = {token.lexem, token.value + PARAM_SEPARATOR + parameter.value};
         stack.push_back(parametrized);
 
-        ++token_idx; // skip the parameter lexem
+        ++token_idx;  // skip the parameter lexem
       }
       else
       {
@@ -110,15 +109,15 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
           op->description() + "_" + stack.back().value +
           (op->type() == OperationType::FILEREADER ? "" : ("_" + std::to_string(node_counter)));
 
-      if (graph.getNode(node_name).get())
+      if (expression.getNode(node_name).get())
       {
-        log << "A node with name " << node_name << " already exists in the Graph.\n";
-        new_nodes.push_back(graph.getNode(node_name));
+        log << "A node with name " << node_name << " already exists in the expression.\n";
+        new_nodes.push_back(expression.getNode(node_name));
       }
       else
       {
         new_nodes.emplace_back(std::make_shared<Node>(op, node_name));
-        graph.insertNode(node_name, new_nodes.back());
+        expression.insertNode(node_name, new_nodes.back());
         log << "  Created node " << node_name << "\n";
         ++node_counter;
       }
@@ -154,7 +153,7 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
     else
     {
       // If there are new nodes, created during parsing this block, they must be added to expression
-      // graph.
+      // expression.
       while (!new_nodes.empty())
       {
         auto const &child = new_nodes.back();
@@ -178,15 +177,15 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
     log << "Parsing finished successfuly, created a Graph with " << node_counter << " nodes."
         << "\n";
 
-    graph.setOutputNodeName(unlinked_nodes.front().back()->name());
-    graph.compile();
+    expression.setOutputNodeName(unlinked_nodes.front().back()->name());
+    expression.compile();
   }
   else
   {
     throw std::runtime_error("Input parsing failed! Unparsed/invalid input lexem : " +
                              stack.back().value);
   }
-  return graph;
+  return expression;
 }
 
 /**
@@ -194,7 +193,7 @@ Graph Graph::buildFromTokens(std::vector<Token> const &tokens)
  * @param token
  * @return shared pointer to a constructed Op.
  */
-OpPtr Graph::buildOperationFromToken(Token const &token)
+OpPtr Expression::buildOperationFromToken(Token const &token)
 {
   switch (token.lexem)
   {
@@ -208,13 +207,13 @@ OpPtr Graph::buildOperationFromToken(Token const &token)
     return buildOperation(OperationType::UNION);
   case Lexem::EQ:
     return buildOperation(OperationType::KEEP_IF_PRECISELY_N_MATCHES,
-                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR)+1)));
+                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR) + 1)));
   case Lexem::LE:
     return buildOperation(OperationType::KEEP_IF_LESS_THAN_N_MATCHES,
-                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR)+1)));
+                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR) + 1)));
   case Lexem::GR:
     return buildOperation(OperationType::KEEP_IF_MORE_THAN_N_MATCHES,
-                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR)+1)));
+                          std::stoi(token.value.substr(token.value.find(PARAM_SEPARATOR) + 1)));
   default: {
     Logger &log_{Logger::instance()};
     log_ << "Error: unknown token ( " << token.value
@@ -230,7 +229,7 @@ OpPtr Graph::buildOperationFromToken(Token const &token)
  * Since compilation could be called multiple times during graph construction, this is
  * necessary to avoid duplicate connections
  */
-void Graph::resetCompile()
+void Expression::resetCompile()
 {
   for (auto &connection : connections_)
   {
@@ -246,7 +245,7 @@ void Graph::resetCompile()
  * uses the connections object to link together inputs to nodes
  * Having a separate compile stage allows for arbitrary order of addNode calls
  */
-void Graph::compile()
+void Expression::compile()
 {
   resetCompile();
 
@@ -264,7 +263,7 @@ void Graph::compile()
  * @param node_name name of node to evaluate for output
  * @return a copy of the output tensor
  */
-Set Graph::evaluate(std::string const &node_name)
+Set Expression::evaluate(std::string const &node_name)
 {
   if (nodes_.find(node_name) == nodes_.end())
   {
@@ -278,7 +277,7 @@ Set Graph::evaluate(std::string const &node_name)
  * @brief A wrapper for more convenient evaluation call
  * @return
  */
-Set Graph::evaluate()
+Set Expression::evaluate()
 {
   return evaluate(outputNodeName());
 }
@@ -288,7 +287,7 @@ Set Graph::evaluate()
  * @param node_name
  * @return false if insertion failed
  */
-bool Graph::insertNode(std::string const &node_name, NodePtrType node_ptr)
+bool Expression::insertNode(std::string const &node_name, NodePtrType node_ptr)
 {
   // put node in look up table
   nodes_[node_name] = node_ptr;
@@ -300,7 +299,7 @@ bool Graph::insertNode(std::string const &node_name, NodePtrType node_ptr)
  * @param node_name
  * @return nullptr if there is no such node.
  */
-Graph::NodePtrType Graph::getNode(const std::string &node_name)
+Expression::NodePtrType Expression::getNode(const std::string &node_name)
 {
   if (nodes_.find(node_name) != nodes_.cend())
   {
@@ -315,7 +314,8 @@ Graph::NodePtrType Graph::getNode(const std::string &node_name)
  * @param node_name
  * @param inputs
  */
-void Graph::linkNodesInGraph(std::string const &node_name, std::vector<std::string> const &inputs)
+void Expression::linkNodesInGraph(std::string const &             node_name,
+                                  std::vector<std::string> const &inputs)
 {
   // assign inputs and outputs
   for (auto const &i : inputs)
@@ -325,12 +325,12 @@ void Graph::linkNodesInGraph(std::string const &node_name, std::vector<std::stri
   }
 }
 
-std::string Graph::outputNodeName() const
+std::string Expression::outputNodeName() const
 {
   return output_node_name_;
 }
 
-void Graph::setOutputNodeName(const std::string &outputNodeName)
+void Expression::setOutputNodeName(const std::string &outputNodeName)
 {
   output_node_name_ = outputNodeName;
 }

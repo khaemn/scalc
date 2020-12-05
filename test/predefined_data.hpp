@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "functions.hpp"
-#include "graph.hpp"
+#include "engine.hpp"
+#include "expression.hpp"
 #include "types.hpp"
 
 // [ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]
@@ -53,7 +53,7 @@ static const std::vector<Token> example4{
 
 inline void testGraphBuildingFromData()
 {
-  Graph g;
+  Expression g;
   g.addNode<OperationType::INTEGER>("A", {}, Set{1, 2, 3});
   g.addNode<OperationType::INTEGER>("B", {}, Set{2, 3, 4});
   g.addNode<OperationType::INTEGER>("C", {}, Set{3, 4, 5});
