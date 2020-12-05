@@ -18,8 +18,7 @@ const std::map<OperationType, std::string> OP_NAMES{
     {OperationType::FILEREADER, "FILEREADER"},
     {OperationType::INTEGER, "INTEGER"},
     {OperationType::CONST_VECTOR, "CONST_VECTOR"},
-    {OperationType::INVALID, "INVALID"},
-    {OperationType::DUMMY, "DUMMY"}};
+    {OperationType::INVALID, "INVALID"}};
 
 void validateTypeIsIn(OperationType type, const std::set<OperationType> allowed_types = {})
 {
@@ -156,4 +155,9 @@ OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(IEngine &engine, int parame
 SetPtr OpKeepIfPreciselyNMatches::execute(const SetPtrEnsemble &inputs)
 {
   return engine_.keep_if_precisely_n_matches(inputs, parameter_);
+}
+
+std::string Operation::description() const
+{
+  return OP_NAMES.at(type());
 }

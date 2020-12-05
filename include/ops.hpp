@@ -23,7 +23,7 @@ enum class OperationType
   INTEGER,
   CONST_VECTOR,
   INVALID,
-  DUMMY,
+  TOTAL_OP_TYPES
 };
 
 extern const std::map<OperationType, std::string> OP_NAMES;
@@ -43,10 +43,7 @@ public:
   {
     return type_;
   }
-  virtual std::string description() const
-  {
-    return OP_NAMES.at(type());
-  }
+  virtual std::string description() const;
 
 protected:
   OperationType type_ = OperationType::INVALID;
@@ -85,7 +82,7 @@ public:
 
 private:
   std::string filename_;
-  SetPtr      cache_{};
+  SetPtr      cache_{nullptr};
 };
 
 class OpHardcoded : public Operation
