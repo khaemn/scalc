@@ -1,12 +1,12 @@
 #include "ops.hpp"
 
+#include "functions.hpp"
+#include "logger.hpp"
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <set>
-
-#include "functions.hpp"
-#include "logger.hpp"
 
 const std::map<OperationType, std::string> OP_NAMES{
     {OperationType::DIFFERENCE, "DIFFERENCE"},
@@ -51,7 +51,7 @@ OpPtr buildOperation(OperationType type, std::string const &filename)
   return std::static_pointer_cast<IOperation>(std::make_shared<OpFileReader>(filename));
 }
 
-OpPtr buildOperation(OperationType type, DataVector const &data)
+OpPtr buildOperation(OperationType type, Set const &data)
 {
   validateTypeIsIn(type, {OperationType::CONST_VECTOR});
   return std::static_pointer_cast<IOperation>(std::make_shared<OpHardcoded>(data));
@@ -81,27 +81,27 @@ OpDifference::OpDifference()
   : IOperation(OperationType::DIFFERENCE)
 {}
 
-VectorPtr OpDifference::evaluate(const InputData &inputs)
+SetPtr OpDifference::evaluate(const SetPtrEnsemble &inputs)
 {
-    return naive_difference(inputs);
+  return sets_difference(inputs);
 }
 
 OpIntersection::OpIntersection()
   : IOperation(OperationType::INTERSECTION)
 {}
 
-VectorPtr OpIntersection::evaluate(const InputData &inputs)
+SetPtr OpIntersection::evaluate(const SetPtrEnsemble &inputs)
 {
-    return naive_intersection(inputs);
+  return sets_intersection(inputs);
 }
 
 OpUnion::OpUnion()
   : IOperation(OperationType::UNION)
 {}
 
-VectorPtr OpUnion::evaluate(const InputData &inputs)
+SetPtr OpUnion::evaluate(const SetPtrEnsemble &inputs)
 {
-  return naive_union(inputs);
+  return sets_union(inputs);
 }
 
 OpFileReader::OpFileReader(const std::string &filename)
@@ -110,7 +110,8 @@ OpFileReader::OpFileReader(const std::string &filename)
 {}
 
 extern size_t TOTAL_PROCESSED_ELEMENTS;
-VectorPtr OpFileReader::evaluate(const InputData &)
+
+SetPtr OpFileReader::evaluate(const SetPtrEnsemble &)
 {
   if (cache_)
   {
@@ -122,7 +123,7 @@ VectorPtr OpFileReader::evaluate(const InputData &)
   {
     throw std::runtime_error("can not open '" + filename_ + "', nothing to process.");
   }
-  auto result = std::make_shared<DataVector>();
+  auto result = std::make_shared<Set>();
 
   int prev_value = std::numeric_limits<int>::min();
   int value      = std::numeric_limits<int>::min();
@@ -142,14 +143,14 @@ VectorPtr OpFileReader::evaluate(const InputData &)
   return result;
 }
 
-OpHardcoded::OpHardcoded(const DataVector &data)
+OpHardcoded::OpHardcoded(const Set &data)
   : IOperation(OperationType::CONST_VECTOR)
   , data_(data)
 {}
 
-VectorPtr OpHardcoded::evaluate(const InputData &)
+SetPtr OpHardcoded::evaluate(const SetPtrEnsemble &)
 {
-  return std::make_shared<DataVector>(data_);
+  return std::make_shared<Set>(data_);
 }
 
 OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
@@ -157,9 +158,8 @@ OpKeepIfMoreThanNMatches::OpKeepIfMoreThanNMatches(int parameter)
   , parameter_(parameter)
 {}
 
-VectorPtr OpKeepIfMoreThanNMatches::evaluate(const InputData &inputs)
+SetPtr OpKeepIfMoreThanNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  Logger::instance() << "OpKeepIfMoreThan" << parameter_ << "Matches::evaluate" << std::endl;
   return keep_if_greater_than_n_matches(inputs, parameter_);
 }
 
@@ -168,9 +168,8 @@ OpKeepIfLessThanNMatches::OpKeepIfLessThanNMatches(int parameter)
   , parameter_(parameter)
 {}
 
-VectorPtr OpKeepIfLessThanNMatches::evaluate(const InputData &inputs)
+SetPtr OpKeepIfLessThanNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  Logger::instance() << "OpKeepIfLessThan" << parameter_ << "Matches::evaluate" << std::endl;
   return keep_if_less_than_n_matches(inputs, parameter_);
 }
 
@@ -179,8 +178,7 @@ OpKeepIfPreciselyNMatches::OpKeepIfPreciselyNMatches(int parameter)
   , parameter_(parameter)
 {}
 
-VectorPtr OpKeepIfPreciselyNMatches::evaluate(const InputData &inputs)
+SetPtr OpKeepIfPreciselyNMatches::evaluate(const SetPtrEnsemble &inputs)
 {
-  Logger::instance() << "OpKeepIfPrecisely" << parameter_ << "Matches::evaluate" << std::endl;
   return keep_if_precisely_n_matches(inputs, parameter_);
 }

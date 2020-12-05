@@ -2,7 +2,7 @@
 #include "ops.hpp"
 
 Node::Node(OpPtr operation, std::string name)
-  : cached_output_(new DataVector)
+  : cached_output_(new Set)
   , op_ptr_(operation)
   , name_(std::move(name))
 {}
@@ -11,9 +11,9 @@ Node::Node(OpPtr operation, std::string name)
  * returns a vector of all nodes which provide input to this node
  * @return vector of reference_wrapped tensors
  */
-InputData Node::gatherInputs() const
+SetPtrEnsemble Node::gatherInputs() const
 {
-  InputData inputs;
+  SetPtrEnsemble inputs;
   for (auto const &i : input_nodes_)
   {
     if (auto ptr = i.lock())
@@ -35,11 +35,11 @@ InputData Node::gatherInputs() const
  * recalculated as necessary
  * @return the tensor with the forward result
  */
-VectorPtr Node::evaluate()
+SetPtr Node::evaluate()
 {
   if (cached_output_->empty())
   {
-    InputData inputs = gatherInputs();
+    SetPtrEnsemble inputs = gatherInputs();
 
     cached_output_ = op_ptr_->evaluate(inputs);
   }

@@ -2,17 +2,15 @@
 
 #include <cstdint>
 #include <memory>
-#include <deque>
-#include <vector>
-#include <map>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
-using DataType   = int64_t;
-using MatchMap   = std::unordered_map<DataType, size_t>;
-using DataVector = std::unordered_set<DataType>;
-using VectorPtr  = std::shared_ptr<DataVector>;
-using InputData  = std::vector<VectorPtr>;
+using DataType       = int64_t;
+using MatchMap       = std::unordered_map<DataType, size_t>;
+using Set            = std::unordered_set<DataType>;
+using SetPtr         = std::shared_ptr<Set>;
+using SetPtrEnsemble = std::vector<SetPtr>;
 
 enum class Lexem
 {

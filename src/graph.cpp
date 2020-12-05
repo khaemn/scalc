@@ -264,7 +264,7 @@ void Graph::compile()
  * @param node_name name of node to evaluate for output
  * @return a copy of the output tensor
  */
-DataVector Graph::evaluate(std::string const &node_name)
+Set Graph::evaluate(std::string const &node_name)
 {
   if (nodes_.find(node_name) == nodes_.end())
   {
@@ -278,7 +278,7 @@ DataVector Graph::evaluate(std::string const &node_name)
  * @brief A wrapper for more convenient evaluation call
  * @return
  */
-DataVector Graph::evaluate()
+Set Graph::evaluate()
 {
   return evaluate(outputNodeName());
 }

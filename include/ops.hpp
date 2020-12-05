@@ -34,7 +34,7 @@ public:
   {}
   virtual ~IOperation() = default;
 
-  virtual std::shared_ptr<DataVector> evaluate(InputData const &inputs) = 0;
+  virtual std::shared_ptr<Set> evaluate(SetPtrEnsemble const &inputs) = 0;
 
   virtual OperationType type() const
   {
@@ -55,21 +55,21 @@ class OpDifference : public IOperation
 {
 public:
   explicit OpDifference();
-  VectorPtr evaluate(const InputData &inputs) override;
+  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 };
 
 class OpIntersection : public IOperation
 {
 public:
   explicit OpIntersection();
-  VectorPtr evaluate(const InputData &inputs) override;
+  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 };
 
 class OpUnion : public IOperation
 {
 public:
   explicit OpUnion();
-  VectorPtr evaluate(const InputData &inputs) override;
+  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 };
 
 class OpFileReader : public IOperation
@@ -77,29 +77,29 @@ class OpFileReader : public IOperation
 public:
   explicit OpFileReader(std::string const &filename);
   ~OpFileReader() override = default;
-  VectorPtr evaluate(const InputData &) override;
+  SetPtr evaluate(const SetPtrEnsemble &) override;
 
 private:
   std::string filename_;
-  VectorPtr   cache_{};
+  SetPtr   cache_{};
 };
 
 class OpHardcoded : public IOperation
 {
 public:
-  explicit OpHardcoded(DataVector const &data);
+  explicit OpHardcoded(Set const &data);
   ~OpHardcoded() override = default;
-  VectorPtr evaluate(const InputData &inputs) override;
+  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
 private:
-  DataVector data_;
+  Set data_;
 };
 
 class OpKeepIfMoreThanNMatches : public IOperation
 {
 public:
   explicit OpKeepIfMoreThanNMatches(int parameter);
-  VectorPtr evaluate(const InputData &inputs) override;
+  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;
@@ -109,7 +109,7 @@ class OpKeepIfLessThanNMatches : public IOperation
 {
 public:
   explicit OpKeepIfLessThanNMatches(int parameter);
-  VectorPtr evaluate(const InputData &inputs) override;
+  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;
@@ -119,7 +119,7 @@ class OpKeepIfPreciselyNMatches : public IOperation
 {
 public:
   explicit OpKeepIfPreciselyNMatches(int parameter);
-  VectorPtr evaluate(const InputData &inputs) override;
+  SetPtr evaluate(const SetPtrEnsemble &inputs) override;
 
 private:
   int parameter_;
@@ -129,6 +129,6 @@ private:
 /// arguments.
 OpPtr buildOperation(OperationType type);
 OpPtr buildOperation(OperationType type, const std::string &filename);
-OpPtr buildOperation(OperationType type, DataVector const &data);
+OpPtr buildOperation(OperationType type, Set const &data);
 OpPtr buildOperation(OperationType type, int parameter);
 

@@ -23,8 +23,8 @@ public:
   void resetCompile();
   void compile();
 
-  DataVector evaluate(std::string const &node_name);
-  DataVector evaluate();
+  Set evaluate(std::string const &node_name);
+  Set evaluate();
 
   bool        insertNode(std::string const &node_name, NodePtrType node_ptr);
   NodePtrType getNode(std::string const &node_name);

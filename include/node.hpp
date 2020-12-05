@@ -12,8 +12,8 @@ public:
 
   ~Node() = default;
 
-  InputData gatherInputs() const;
-  VectorPtr evaluate();
+  SetPtrEnsemble gatherInputs() const;
+  SetPtr evaluate();
 
   void addInput(NodeWeakPtr const &i);
   void addOutput(NodeWeakPtr const &o);
@@ -27,7 +27,7 @@ private:
   std::vector<NodeWeakPtr> input_nodes_;
   std::vector<NodeWeakPtr> outputs_;
 
-  VectorPtr cached_output_;
+  SetPtr cached_output_;
 
   OpPtr       op_ptr_;
   std::string name_;
