@@ -20,7 +20,7 @@ set(HEADERS
   )
 
 set(SOURCES
-  main.cpp
+  src/main.cpp
   src/engine.cpp
   src/node.cpp
   src/expression.cpp

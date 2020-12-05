@@ -1,4 +1,5 @@
+mkdir build
 cd build
 cmake ../
 make -j
-./scalc l [ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]
+./scalc l [ SUM [ DIF ../test/a.txt ../test/b.txt ../test/c.txt ] [ INT ../test/b.txt ../test/c.txt ] ]
