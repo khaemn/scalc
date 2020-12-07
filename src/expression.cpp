@@ -109,7 +109,7 @@ void Expression::buildFromTokens(std::vector<Token> const &tokens)
           op->description() + "_" + stack.back().value +
           (op->type() == OperationType::FILEREADER ? "" : ("_" + std::to_string(node_counter)));
 
-      if (this->getNode(node_name).get())
+      if (this->contains(node_name))
       {
         log << "A node with name " << node_name << " already exists in the expression.\n";
         new_nodes.push_back(this->getNode(node_name));
@@ -132,7 +132,7 @@ void Expression::buildFromTokens(std::vector<Token> const &tokens)
     {
       // If no new nodes were created while parsing this block, it means all included blocks are
       // already processed and the only thing left is to link them together and leave the block.
-      auto &ready_nodes = unlinked_nodes[depth];
+      auto &ready_nodes = unlinked_nodes.at(depth);
       if (ready_nodes.empty())
       {
         log << "    !---Error: no ready nodes on depth " << depth << " to combine!"
@@ -161,10 +161,24 @@ void Expression::buildFromTokens(std::vector<Token> const &tokens)
         parent->addInput(Node::NodeWeakPtr(child));
         new_nodes.pop_back();
       }
-      auto &ready_nodes = unlinked_nodes[depth - 1];
+      if (unlinked_nodes.size() > depth)
+      {
+        auto &unlinked_nodes_on_this_depth = unlinked_nodes.at(depth);
+        while (!unlinked_nodes_on_this_depth.empty())
+        {
+          auto const &child = unlinked_nodes_on_this_depth.back();
+          log << INDENT << parent->name() << "--connect-input-to-->" << child->name() << "\n";
+          parent->addInput(Node::NodeWeakPtr(child));
+          unlinked_nodes_on_this_depth.pop_back();
+        }
+        unlinked_nodes.pop_back();
+      }
+      const auto parent_level = depth - 1;
+      auto &     ready_nodes  = unlinked_nodes[parent_level];
       // arg_buffers.pop_back();
       ready_nodes.push_back(parent);
-      log << INDENT << "Pushed a parent node from depth " << depth << " to " << depth - 1 << "\n";
+      log << INDENT << "Pushed a parent node from depth " << depth << " to " << parent_level
+          << "\n";
       log << INDENT << "Arg buffer size " << ready_nodes.size() << " depth " << depth
           << " total bufs " << unlinked_nodes.size() << "\n";
     }
@@ -287,6 +301,15 @@ Expression::NodePtrType Expression::getNode(const std::string &node_name)
     return nodes_.at(node_name);
   }
   return NodePtrType{nullptr};
+}
+
+bool Expression::contains(const std::string &node_name) const
+{
+  if (nodes_.find(node_name) != nodes_.cend())
+  {
+    return true;
+  }
+  return false;
 }
 
 /**

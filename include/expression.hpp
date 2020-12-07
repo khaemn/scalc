@@ -27,6 +27,7 @@ public:
 
   bool        insertNode(std::string const &node_name, NodePtrType node_ptr);
   NodePtrType getNode(std::string const &node_name);
+  bool        contains(std::string const &node_name) const;
 
   std::string outputNodeName() const;
   void        setOutputNodeName(const std::string &outputNodeName);
