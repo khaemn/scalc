@@ -15,8 +15,6 @@ set(HEADERS
   include/expression.hpp
   include/lexer.hpp
   include/logger.hpp
-
-  test/predefined_data.hpp
   )
 
 set(SOURCES
